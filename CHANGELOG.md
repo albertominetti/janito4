@@ -15,3 +15,10 @@ Changes since `v4.40.0` (2026-09-10).
   `.github/workflows/docker.yaml` builds
   `linux/amd64` + `linux/arm64` with buildx and publishes to GHCR on every
   `v*` tag and on `main` (`:latest`). See `docs/usage/docker.md`.
+
+### Fixed
+- Fixed `import janito` on Python <= 3.13: the class-level annotation
+  `set[str]` in `JsonFileStore.list_keys` shadowed the builtin `set` with the
+  class's own `set` method and raised `TypeError: 'function' object is not
+  subscriptable` (deferred in 3.14). Added `from __future__ import
+  annotations` to `janito/json_store.py`.
