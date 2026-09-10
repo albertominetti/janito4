@@ -165,7 +165,7 @@ if pytest is not None:
             {
                 "day": "2026-08-28",
                 "provider": "deepseek",
-                "model": "deepseek-v4-flash",
+                "model": "deepseek-flash",
                 "input_tokens": 300,
                 "cached_tokens": 30,
                 "output_tokens": 150,
@@ -191,7 +191,7 @@ if pytest is not None:
         _point_at(monkeypatch, tmp_path)
         accounting.record_turn(
             "deepseek",
-            "deepseek-v4-flash",
+            "deepseek-flash",
             input_tokens=300,
             cached_tokens=30,
             output_tokens=150,
@@ -221,12 +221,12 @@ if pytest is not None:
         stats = accounting.get_per_model_stats()
         assert [row["model"] for row in stats] == [
             "gpt-5.6-luna",
-            "deepseek-v4-flash",
+            "deepseek-flash",
             "gpt-5.6-luna",
         ]
         totals = {(r["day"], r["model"]): r for r in stats}
-        assert totals[("2026-08-28", "deepseek-v4-flash")]["input_tokens"] == 300
-        assert totals[("2026-08-28", "deepseek-v4-flash")]["cost"] == pytest.approx(0.003)
+        assert totals[("2026-08-28", "deepseek-flash")]["input_tokens"] == 300
+        assert totals[("2026-08-28", "deepseek-flash")]["cost"] == pytest.approx(0.003)
 
         table = handler._build_model_table(stats)
         assert table.row_count == len(stats)

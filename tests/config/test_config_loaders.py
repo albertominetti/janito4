@@ -104,7 +104,7 @@ if pytest is not None:
                 {
                     "providers": {
                         "openai": {"models": {"gpt-5.6-luna": {"stateless-mode": "true"}}},
-                        "deepseek": {"models": {"deepseek-v4-flash": {"stateless-mode": "FALSE"}}},
+                        "deepseek": {"models": {"deepseek-flash": {"stateless-mode": "FALSE"}}},
                         "xai": {"models": {"grok-4.6": {"stateless-mode": True}}},
                         "zai": {"models": {"glm-5.3-flash": {"stateless-mode": False}}},
                     }

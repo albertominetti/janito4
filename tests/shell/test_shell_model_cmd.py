@@ -50,19 +50,19 @@ def test_no_argument_smoke(monkeypatch, tmp_path, capsys):
 def test_switch_model_updates_state_not_config(monkeypatch, tmp_path, capsys):
     _use_temp_config(monkeypatch, tmp_path)
     shell = _shell(provider="deepseek")
-    assert _model_handler().handle(shell, "/model deepseek-v4-flash") is True
+    assert _model_handler().handle(shell, "/model deepseek-flash") is True
     capsys.readouterr()
     assert get_config_value("deepseek.model") is None
-    assert shell.model == "deepseek-v4-flash"
-    assert shell.model_override == "deepseek-v4-flash"
+    assert shell.model == "deepseek-flash"
+    assert shell.model_override == "deepseek-flash"
 
 
 def test_switch_model_canonicalizes(monkeypatch, tmp_path, capsys):
     _use_temp_config(monkeypatch, tmp_path)
     shell = _shell(provider="deepseek")
-    assert _model_handler().handle(shell, "/model DEEPSEEK-V4-FLASH") is True
+    assert _model_handler().handle(shell, "/model DEEPSEEK-FLASH") is True
     capsys.readouterr()
-    assert shell.model == "deepseek-v4-flash"
+    assert shell.model == "deepseek-flash"
 
 
 def test_switch_unknown_model_error_kind(monkeypatch, tmp_path, capsys):
@@ -93,8 +93,8 @@ def test_switch_same_model_keeps_history(monkeypatch, tmp_path, capsys):
     shell.initialize_history(system_prompt="sys")
     shell.messages_history.append({"role": "user", "content": "hello"})
     shell.messages_history.append({"role": "assistant", "content": "hi"})
-    shell.model = "deepseek-v4-flash"
-    assert _model_handler().handle(shell, "/model deepseek-v4-flash") is True
+    shell.model = "deepseek-flash"
+    assert _model_handler().handle(shell, "/model deepseek-flash") is True
     capsys.readouterr()
     assert len(shell.messages_history) == 3
 

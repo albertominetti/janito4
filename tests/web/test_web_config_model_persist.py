@@ -177,11 +177,11 @@ def test_patch_model_for_other_provider_keeps_server_model(client):
     client.app.state.config.model = "gpt-4o-mini"
 
     # Persist a model for a *different* provider (deepseek).
-    resp = client.patch("/api/config", json={"model": "deepseek-v4-flash", "provider": "deepseek"})
+    resp = client.patch("/api/config", json={"model": "deepseek-flash", "provider": "deepseek"})
     assert resp.status_code == 200
 
     # On disk for deepseek...
-    assert cs.load_config().get("providers", {}).get("deepseek", {}).get("model") == "deepseek-v4-flash"
+    assert cs.load_config().get("providers", {}).get("deepseek", {}).get("model") == "deepseek-flash"
     # ...but the running server (openai) keeps its current model.
     assert client.get("/api/config").json()["model"] == "gpt-4o-mini"
 

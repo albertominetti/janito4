@@ -280,7 +280,7 @@ def test_encode_png_small_canvas():
 def test_render_chart_writes_valid_png(tmp_path):
     entries = [
         ("gpt-5.6-luna", 18432),
-        ("deepseek-v4-flash", 8932),
+        ("deepseek-flash", 8932),
         ("glm-5.3", 512),
     ]
     out = tmp_path / "chart.png"

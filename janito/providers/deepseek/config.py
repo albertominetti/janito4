@@ -7,7 +7,7 @@ CONFIG option.
 
 #: The config entry for the ``deepseek`` provider.
 PROVIDER_CONFIG: dict = {
-    "default_model": "deepseek-v4-flash",
+    "default_model": "deepseek-flash",
     "endpoint": "https://api.deepseek.com",
     # Per-API-type endpoints: the OpenAI-compatible base URL (Chat
     # Completions / Responses) and the Anthropic-compatible base URL for
@@ -22,7 +22,7 @@ PROVIDER_CONFIG: dict = {
         "Anthropic": "https://api.deepseek.com/anthropic",
     },
     "models": {
-        "deepseek-v4-flash": {
+        "deepseek-flash": {
             "supported_api_types": ["Responses", "Completions", "Anthropic"],
             "default_api_type": "Responses",  # built-in default (the first supported type)
             # DeepSeek's /responses endpoint is stateless: it cannot
@@ -34,7 +34,7 @@ PROVIDER_CONFIG: dict = {
             "thinking": True,  # DeepSeek models reason by default
             # Per the DeepSeek API reference, reasoning_effort accepts
             # low/high/max (default high; medium/xhigh map to high for
-            # compatibility). deepseek-v4-flash supports all three levels.
+            # compatibility). deepseek-flash supports all three levels.
             "supported_reasoning_efforts": [
                 {
                     "effort": "low",

@@ -165,31 +165,31 @@ if pytest is not None:
         # Weekend (Saturday 2026-08-22 in Beijing Time) request time inside
         # the weekday peak window: weekends charge the off-peak rate all day.
         weekend_peak = datetime(2026, 8, 22, 8, 0, tzinfo=timezone.utc)
-        # DeepSeek ships a cost module: V4-Flash at $0.22 / $0.007 (cache
-        # hit) / $0.66 output per 1M tokens (off-peak); the estimate is
+        # DeepSeek ships a cost module: Flash at $0.15 / $0.003 (cache
+        # hit) / $0.60 output per 1M tokens (off-peak); the estimate is
         # rendered with the adaptive format plus the applied rate band.
         assert (
             get_provider_cost(
                 "deepseek",
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=off_peak,
             )
-            == "88.0\xa2 (off-peak)"
+            == "75.0\xa2 (off-peak)"
         )
         # Cached input tokens are billed at the cache-hit rate.
         assert (
             get_provider_cost(
                 "deepseek",
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 500_000,
                 now=off_peak,
             )
-            == "77.3\xa2 (off-peak)"
+            == "67.7\xa2 (off-peak)"
         )
         # Case-insensitive provider lookup (V4-Pro at $0.66 / $1.98).
         assert (
@@ -199,26 +199,26 @@ if pytest is not None:
         assert (
             get_provider_cost(
                 "deepseek",
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=peak,
             )
-            == "1.8$ (peak)"
+            == "1.5$ (peak)"
         )
         # Weekend requests are billed at the off-peak rate all day, even at
         # what would be a weekday peak hour (08:00 UTC).
         assert (
             get_provider_cost(
                 "deepseek",
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=weekend_peak,
             )
-            == "88.0\xa2 (off-peak)"
+            == "75.0\xa2 (off-peak)"
         )
         # Alibaba ships a cost module: qwen3.8-max at $2 / $0.25 (implicit
         # cache hit) / $6 output per 1M tokens.
@@ -398,17 +398,17 @@ if pytest is not None:
         # GLM-5.3-Flash: 1M * $0.075 + 1M * $0.25 = 0.325.
         assert zai_get_cost("glm-5.3-flash", 1_000_000, 1_000_000, 0, is_reference=True) == "0.325000$"
         # DeepSeek bills reference requests at the peak rates (double the
-        # off-peak: (0.22 + 0.66) * 2 = 1.76) and omits the rate-band suffix.
+        # off-peak: (0.15 + 0.60) * 2 = 1.50) and omits the rate-band suffix.
         assert (
             deepseek_get_cost(
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=off_peak,
                 is_reference=True,
             )
-            == "1.760000$"
+            == "1.500000$"
         )
 
     def test_openai_high_context_boundary():
@@ -451,39 +451,39 @@ if pytest is not None:
         # Off-peak reference request: billed as peak (double), no suffix.
         assert (
             deepseek_get_cost(
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=off_peak,
                 is_reference=True,
             )
-            == "1.760000$"
+            == "1.500000$"
         )
         # Peak reference request: same cost, still no suffix.
         assert (
             deepseek_get_cost(
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=peak,
                 is_reference=True,
             )
-            == "1.760000$"
+            == "1.500000$"
         )
         # Cached input tokens still bill at the cache-hit rate (peak double):
-        # (0.5M * 0.22 + 0.5M * 0.007 + 1M * 0.66) / 1M * 2 = 1.547.
+        # (0.5M * 0.15 + 0.5M * 0.003 + 1M * 0.60) / 1M * 2 = 1.353.
         assert (
             deepseek_get_cost(
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 500_000,
                 now=off_peak,
                 is_reference=True,
             )
-            == "1.547000$"
+            == "1.353000$"
         )
 
     def test_deepseek_weekend_off_peak_all_day():
@@ -502,29 +502,25 @@ if pytest is not None:
         sat_off_peak = datetime(2026, 8, 22, 12, 0, tzinfo=timezone.utc)
         sun_peak = datetime(2026, 8, 16, 8, 0, tzinfo=timezone.utc)
         # Weekday: off-peak hour stays off-peak, peak hour stays peak (2x).
-        assert (
-            deepseek_get_cost("deepseek-v4-flash", 1_000_000, 1_000_000, 0, now=mon_off_peak) == "0.880000$ (off-peak)"
-        )
-        assert deepseek_get_cost("deepseek-v4-flash", 1_000_000, 1_000_000, 0, now=mon_peak) == "1.760000$ (peak)"
+        assert deepseek_get_cost("deepseek-flash", 1_000_000, 1_000_000, 0, now=mon_off_peak) == "0.750000$ (off-peak)"
+        assert deepseek_get_cost("deepseek-flash", 1_000_000, 1_000_000, 0, now=mon_peak) == "1.500000$ (peak)"
         # Weekend: uniform off-peak rate for the whole day, including what
         # would be a weekday peak hour (08:00 UTC).
-        assert deepseek_get_cost("deepseek-v4-flash", 1_000_000, 1_000_000, 0, now=sat_peak) == "0.880000$ (off-peak)"
-        assert (
-            deepseek_get_cost("deepseek-v4-flash", 1_000_000, 1_000_000, 0, now=sat_off_peak) == "0.880000$ (off-peak)"
-        )
-        assert deepseek_get_cost("deepseek-v4-flash", 1_000_000, 1_000_000, 0, now=sun_peak) == "0.880000$ (off-peak)"
+        assert deepseek_get_cost("deepseek-flash", 1_000_000, 1_000_000, 0, now=sat_peak) == "0.750000$ (off-peak)"
+        assert deepseek_get_cost("deepseek-flash", 1_000_000, 1_000_000, 0, now=sat_off_peak) == "0.750000$ (off-peak)"
+        assert deepseek_get_cost("deepseek-flash", 1_000_000, 1_000_000, 0, now=sun_peak) == "0.750000$ (off-peak)"
         # Reference requests still bill at the peak rates on weekends and
         # drop the rate-band suffix.
         assert (
             deepseek_get_cost(
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 1_000_000,
                 1_000_000,
                 0,
                 now=sat_peak,
                 is_reference=True,
             )
-            == "1.760000$"
+            == "1.500000$"
         )
 
     def test_get_provider_cost_forwards_is_reference(monkeypatch):
@@ -536,10 +532,10 @@ if pytest is not None:
             return "0.000000$"
 
         monkeypatch.setattr("janito.providers.deepseek.cost.get_cost", fake_get_cost)
-        get_provider_cost("deepseek", "deepseek-v4-flash", 1000, 500, 100, is_reference=True)
+        get_provider_cost("deepseek", "deepseek-flash", 1000, 500, 100, is_reference=True)
         assert captured["is_reference"] is True
         # The parameter defaults to False.
-        get_provider_cost("deepseek", "deepseek-v4-flash", 1000, 500, 100)
+        get_provider_cost("deepseek", "deepseek-flash", 1000, 500, 100)
         assert captured["is_reference"] is False
 
 else:  # pragma: no cover - fallback runner without pytest

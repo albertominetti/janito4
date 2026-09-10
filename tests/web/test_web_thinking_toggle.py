@@ -178,7 +178,7 @@ def test_build_call_kwargs_honors_runtime_override(client):
     _reset(cfg)
     cfg.provider = "deepseek"
     cfg.thinking_override = False
-    kwargs = build_call_kwargs("deepseek-v4-flash", cfg, 1000, None, None)
+    kwargs = build_call_kwargs("deepseek-flash", cfg, 1000, None, None)
     assert "extra_body" not in kwargs
 
     # Force on for a provider without a default -> enable_thinking sent.

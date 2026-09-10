@@ -128,7 +128,7 @@ if pytest is not None:
         config = build_api_config(
             api_type="Completions",
             cli_provider="deepseek",
-            cli_model="deepseek-v4-flash",
+            cli_model="deepseek-flash",
             use_mcp=False,
         )
         client_mod.run_turn(config, "hello", ui_config=make_ui_config(stream_runner=fake_run))
@@ -296,7 +296,7 @@ if pytest is not None:
             def effective_tools_for(self, api_type):
                 return None
 
-        kwargs = build_call_kwargs("deepseek-v4-flash", _Cfg(), 1000, None, None)
+        kwargs = build_call_kwargs("deepseek-flash", _Cfg(), 1000, None, None)
         assert kwargs["extra_body"]["enable_thinking"] is True
 
     def test_build_call_kwargs_gemini_flavor_skips_enable_thinking():

@@ -430,7 +430,7 @@ Use DeepSeek models.
 
 ```bash
 # Step 1: Set provider and model
-janito --set provider=deepseek --set model=deepseek-v4-flash
+janito --set provider=deepseek --set model=deepseek-flash
 # Step 2: Store API key
 janito --set-api-key="your-deepseek-api-key" --provider deepseek
 ```
@@ -461,7 +461,7 @@ janito --provider deepseek --api-type Anthropic "Explain quantum computing"
 
 ### Reasoning Level
 
-The default model `deepseek-v4-flash` supports configurable reasoning depth via
+The default model `deepseek-flash` supports configurable reasoning depth via
 the OpenAI-compatible `reasoning_effort` parameter. The supported levels are
 `low`, `high` and `max` (the API's default is `high`; `medium`/`xhigh` are
 mapped to `high` for compatibility, and `deepseek-v4-pro` currently supports
@@ -490,7 +490,7 @@ on for any provider.
 
 ```bash
 # Step 1: Set provider and model
-janito --set provider=deepseek --set model=deepseek-v4-flash
+janito --set provider=deepseek --set model=deepseek-flash
 # Step 2: Store API key
 janito --set-api-key="your-deepseek-api-key" --provider deepseek
 # Step 3: Run prompt

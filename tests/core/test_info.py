@@ -203,9 +203,9 @@ def _run_show_config(
 
 def test_show_config_uses_provider_default_model_when_unset(capsys):
     """No explicit model -> the provider's built-in default model is shown."""
-    out = _run_show_config(capsys, provider="deepseek", default_model="deepseek-v4-flash")
+    out = _run_show_config(capsys, provider="deepseek", default_model="deepseek-flash")
     assert out.strip() != ""
-    assert "deepseek-v4-flash" in out
+    assert "deepseek-flash" in out
 
 
 def test_show_config_uses_configured_model(capsys):
@@ -214,7 +214,7 @@ def test_show_config_uses_configured_model(capsys):
         capsys,
         provider="deepseek",
         config_model="my-model",
-        default_model="deepseek-v4-flash",
+        default_model="deepseek-flash",
     )
     assert "my-model" in out
 
@@ -226,7 +226,7 @@ def test_show_config_cli_model_overrides_config(capsys):
         provider="deepseek",
         cli_model="gpt-x",
         config_model="my-model",
-        default_model="deepseek-v4-flash",
+        default_model="deepseek-flash",
     )
     assert "gpt-x" in out
 

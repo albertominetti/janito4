@@ -73,7 +73,7 @@ if pytest is not None:
         _point_at(monkeypatch, tmp_path)
         accounting.record_turn(
             "deepseek",
-            "deepseek-v4-flash",
+            "deepseek-flash",
             input_tokens=180,
             cached_tokens=10,
             output_tokens=120,
@@ -86,7 +86,7 @@ if pytest is not None:
         assert row["cwd"] == str(Path.cwd())
         assert row["timestamp"]
         assert row["provider"] == "deepseek"
-        assert row["model"] == "deepseek-v4-flash"
+        assert row["model"] == "deepseek-flash"
         assert row["input_tokens"] == 180
         assert row["cached_tokens"] == 10
         assert row["output_tokens"] == 120
@@ -338,7 +338,7 @@ if pytest is not None:
         )
         accounting.record_turn(
             "deepseek",
-            "deepseek-v4-flash",
+            "deepseek-flash",
             input_tokens=300,
             cached_tokens=30,
             output_tokens=150,
@@ -382,7 +382,7 @@ if pytest is not None:
             (
                 (now - timedelta(days=1)).date().isoformat(),
                 "deepseek",
-                "deepseek-v4-flash",
+                "deepseek-flash",
                 300,
                 30,
                 150,

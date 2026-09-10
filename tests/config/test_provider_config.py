@@ -195,7 +195,7 @@ if pytest is not None:
         assert model_info["max_output_tokens"] == 128000
         # Case-insensitive provider lookup works with a model too.
         assert get_provider_config("MiniMax", "MiniMax-M3")["thinking"] == {"type": "adaptive"}
-        assert get_provider_config("DeepSeek", "deepseek-v4-flash")["stateless_mode"] is True
+        assert get_provider_config("DeepSeek", "deepseek-flash")["stateless_mode"] is True
         # Unknown model -> None (no fallback to the default model's entry).
         assert get_provider_config("openai", "no-such-model") is None
         # Unknown provider -> None.
@@ -224,8 +224,8 @@ if pytest is not None:
     def test_deepseek_provider():
         info = get_provider_config("deepseek")
         assert info is not None
-        assert info["default_model"] == "deepseek-v4-flash"
-        model_entry = info["models"]["deepseek-v4-flash"]
+        assert info["default_model"] == "deepseek-flash"
+        model_entry = info["models"]["deepseek-flash"]
         assert model_entry["max_input_tokens"] == 1048576  # 1M (2**20)
         assert model_entry["max_output_tokens"] == 393216
         assert info["endpoint"] == "https://api.deepseek.com"
@@ -244,7 +244,7 @@ if pytest is not None:
         # Case-insensitive lookup.
         assert get_provider_config("DeepSeek")["endpoint"] == "https://api.deepseek.com"
         assert get_base_url_from_provider("deepseek") == "https://api.deepseek.com"
-        assert get_default_model_from_provider("deepseek") == "deepseek-v4-flash"
+        assert get_default_model_from_provider("deepseek") == "deepseek-flash"
         assert get_default_max_input_tokens_from_provider("deepseek") == 1048576
         assert get_default_max_output_tokens_from_provider("deepseek") == 393216
 
@@ -443,7 +443,7 @@ if pytest is not None:
         for entry in supported:
             assert "effort" in entry
             assert "description" in entry
-        # DeepSeek's default model (deepseek-v4-flash) declares reasoning
+        # DeepSeek's default model (deepseek-flash) declares reasoning
         # levels too (low/high/max per the DeepSeek API reference).
         supported = get_supported_reasoning_efforts_from_provider("deepseek")
         assert supported is not None
@@ -518,7 +518,7 @@ if pytest is not None:
         assert get_default_thinking_from_provider("Alibaba") is True
         assert get_default_thinking_from_provider("MiniMax") == {"type": "adaptive"}
         # The model info entries carry the flag.
-        assert get_provider_config("deepseek")["models"]["deepseek-v4-flash"]["thinking"] is True
+        assert get_provider_config("deepseek")["models"]["deepseek-flash"]["thinking"] is True
         assert get_provider_config("alibaba")["models"]["qwen3.8-max"]["thinking"] is True
         assert get_provider_config("alibaba")["models"]["qwen3.8-flash"]["thinking"] is True
         assert get_provider_config("minimax")["models"]["MiniMax-M3"]["thinking"] == {"type": "adaptive"}
@@ -991,7 +991,7 @@ if pytest is not None:
         assert get_provider_config("openai")["models"]["gpt-5.6-luna"]["stateless_mode"] is False
         # DeepSeek's /responses endpoint is stateless.
         assert get_stateless_mode_from_provider("deepseek") is True
-        assert get_provider_config("deepseek")["models"]["deepseek-v4-flash"]["stateless_mode"] is True
+        assert get_provider_config("deepseek")["models"]["deepseek-flash"]["stateless_mode"] is True
         # Case-insensitive lookups work.
         assert get_stateless_mode_from_provider("DeepSeek") is True
         # Providers that do not declare the flag default to False (server-side,
@@ -1020,7 +1020,7 @@ if pytest is not None:
 
         # DeepSeek's built-in default is True (stateless); force server-side
         # via config.
-        gc.set_config_value("deepseek.models.deepseek-v4-flash.stateless-mode", False)
+        gc.set_config_value("deepseek.models.deepseek-flash.stateless-mode", False)
         assert get_stateless_mode_from_provider("deepseek") is False
 
         # Unknown providers still default to False regardless of config.

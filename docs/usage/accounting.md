@@ -27,7 +27,7 @@ Each row has:
 | `cwd`          | Working directory the turn ran in                              |
 | `timestamp`    | UTC time the turn completed (ISO-8601)                         |
 | `provider`     | Provider that served the turn (e.g. `deepseek`)                |
-| `model`        | Model used (e.g. `deepseek-v4-flash`)                          |
+| `model`        | Model used (e.g. `deepseek-flash`)                          |
 | `input_tokens` | Turn-wide input tokens (all API rounds of the turn included)   |
 | `cached_tokens`| Turn-wide cached input tokens (`NULL` when not reported)       |
 | `output_tokens`| Turn-wide output tokens (all API rounds of the turn included)  |
@@ -84,7 +84,7 @@ so you can see at a glance which model drove the usage on each day:
 ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
 ┃ Day            ┃ Provider  ┃ Model                 ┃ Input tokens    ┃ Cached tokens    ┃ Output tokens    ┃       Cost ┃
 ┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
-│ 2026-08-28     │ deepseek  │ deepseek-v4-flash     │             180 │          6 (6%)  │              120 │    0.010¢ │
+│ 2026-08-28     │ deepseek  │ deepseek-flash     │             180 │          6 (6%)  │              120 │    0.010¢ │
 │ 2026-08-28     │ openai    │ gpt-5.6-luna          │           1,200 │       300 (25%)  │              800 │    0.170¢ │
 │ 2026-08-29     │ openai    │ gpt-5.6-luna          │           1,800 │       600 (33%)  │            1,600 │    0.240¢ │
 └────────────────┴───────────┴───────────────────────┴─────────────────┴──────────────────┴──────────────────┴────────────┘
@@ -105,7 +105,7 @@ python -m janito.tooling.accounting --json     # JSON output
 Example output:
 
 ```
-2026-08-28T17:47:34.778205+00:00  /home/me/proj  deepseek/deepseek-v4-flash  in=180 cached=10 out=120  cost=0.0001$
+2026-08-28T17:47:34.778205+00:00  /home/me/proj  deepseek/deepseek-flash  in=180 cached=10 out=120  cost=0.0001$
 2026-08-28T17:47:34.778580+00:00  /home/me/proj  openai/gpt-5.6-luna          in=50000 cached=5000 out=4000  cost=0.0150$
 ```
 

@@ -65,7 +65,7 @@ def _config(**kw):
 
     defaults = dict(
         provider="deepseek",
-        model="deepseek-v4-flash",
+        model="deepseek-flash",
         max_input_tokens=65536,
         max_output_tokens=8192,
     )
@@ -116,7 +116,7 @@ class TestDisplayTurnUsage:
             u,
             _config(
                 provider="deepseek",
-                model="deepseek-v4-flash",
+                model="deepseek-flash",
                 max_input_tokens=65536,
                 max_output_tokens=8192,
             ),
@@ -304,7 +304,7 @@ class TestRunTurnDeliversTurnReport:
             u,
             _config(
                 provider="deepseek",
-                model="deepseek-v4-flash",
+                model="deepseek-flash",
                 max_input_tokens=65536,
                 max_output_tokens=8192,
             ),
@@ -323,13 +323,13 @@ class TestRunTurnDeliversTurnReport:
         buf = StringIO()
         observer = RichTurnObserver(console=Console(file=buf, width=120, force_terminal=False))
         u = _token_stats()
-        observer.on_turn_complete(u, _config(provider="deepseek", model="deepseek-v4-flash"))
+        observer.on_turn_complete(u, _config(provider="deepseek", model="deepseek-flash"))
         records = accounting.get_records()
         assert len(records) == 1
         row = records[0]
         # The turn-wide cumulative counters (tool-call rounds included).
         assert row["provider"] == "deepseek"
-        assert row["model"] == "deepseek-v4-flash"
+        assert row["model"] == "deepseek-flash"
         assert row["input_tokens"] == 180
         assert row["cached_tokens"] == 10
         assert row["output_tokens"] == 120

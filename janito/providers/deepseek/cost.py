@@ -4,7 +4,7 @@ Rates source
 ------------
 The per-1M-token rates below were taken from the official DeepSeek rate
 card at https://api-docs.deepseek.com/quick_start/pricing (last verified
-2026-08-16) and apply as of the verification date.  DeepSeek adjusts
+2026-09-10) and apply as of the verification date.  DeepSeek adjusts
 figures frequently, so cross-check that page before relying on them.
 
 Peak/off-peak
@@ -38,7 +38,7 @@ from datetime import datetime, time, timedelta, timezone
 #: stable system prompt, a long document, few-shot examples) are billed at
 #: the much lower cache-hit rate instead of the cache-miss rate.
 _MODEL_RATES: dict[str, tuple[float, float, float]] = {
-    "deepseek-v4-flash": (0.22, 0.007, 0.66),
+    "deepseek-flash": (0.15, 0.003, 0.6),
     "deepseek-v4-pro": (0.66, 0.022, 1.98),
 }
 

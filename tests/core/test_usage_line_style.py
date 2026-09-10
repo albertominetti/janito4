@@ -59,7 +59,7 @@ def _render_display_usage():
         8192,
         console,
         provider="deepseek",
-        model="deepseek-v4-flash",
+        model="deepseek-flash",
     )
     return _usage_summary_line(console)
 
@@ -101,7 +101,7 @@ def test_display_turn_usage_uses_the_same_style():
 
     class _Config:
         provider = "deepseek"
-        model = "deepseek-v4-flash"
+        model = "deepseek-flash"
         max_input_tokens = 65536
         max_output_tokens = 8192
 

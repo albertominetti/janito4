@@ -252,7 +252,7 @@ if pytest is not None:
 
     def test_model_argument_completes_deepseek_models():
         names = _arg_completer_completions_for("/model ", provider="deepseek")
-        assert "deepseek-v4-flash" in names
+        assert "deepseek-flash" in names
         assert "gpt-5.6-luna" not in names
 
     def test_model_argument_completes_prefix():
@@ -265,7 +265,7 @@ if pytest is not None:
 
     def test_model_argument_command_case_insensitive():
         names = _arg_completer_completions_for("/MODEL deep", provider="deepseek")
-        assert "deepseek-v4-flash" in names
+        assert "deepseek-flash" in names
 
     def test_model_argument_includes_configured_models(monkeypatch, tmp_path):
         from janito.config_store import set_config_value

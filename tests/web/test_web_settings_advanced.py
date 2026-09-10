@@ -284,7 +284,7 @@ def test_providers_endpoint_exposes_advanced_fields(client):
     # Clear any model-scoped stateless-mode override left by earlier
     # tests in this module (they share the module-scoped config dir).
     cs.unset_config_value("openai.models.gpt-5.6-luna.stateless-mode")
-    cs.unset_config_value("deepseek.models.deepseek-v4-flash.stateless-mode")
+    cs.unset_config_value("deepseek.models.deepseek-flash.stateless-mode")
     entries = _providers_by_name(client)
 
     openai = entries["openai"]

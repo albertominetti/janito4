@@ -173,13 +173,13 @@ def test_build_api_config_reasoning_falls_back_to_builtin(monkeypatch):
 
 def test_build_api_config_thinking_falls_back_to_builtin():
     """Built-in thinking default (deepseek True) applies when not forced."""
-    config = build_api_config(api_type="Responses", cli_provider="deepseek", cli_model="deepseek-v4-flash")
+    config = build_api_config(api_type="Responses", cli_provider="deepseek", cli_model="deepseek-flash")
     assert config.thinking is True
     # The explicit --thinking flag wins over the built-in default.
     config = build_api_config(
         api_type="Responses",
         cli_provider="deepseek",
-        cli_model="deepseek-v4-flash",
+        cli_model="deepseek-flash",
         thinking=True,
     )
     assert config.thinking is True
@@ -189,7 +189,7 @@ def test_build_api_config_thinking_falls_back_to_builtin():
     config = build_api_config(
         api_type="Responses",
         cli_provider="deepseek",
-        cli_model="deepseek-v4-flash",
+        cli_model="deepseek-flash",
         thinking=False,
     )
     assert config.thinking is True

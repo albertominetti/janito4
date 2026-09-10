@@ -137,25 +137,25 @@ if pytest is not None:
     def test_usage_line_cost_from_provider_cost_module(monkeypatch):
         """The Cost part is computed via get_provider_cost for the provider."""
         # Pin the request time to a weekday off-peak hour (Monday 12:00 UTC)
-        # so the estimate is deterministic: DeepSeek V4-Flash is $0.22 in
-        # (miss) + $0.66 out per 1M tokens off-peak.
+        # so the estimate is deterministic: DeepSeek Flash is $0.15 in
+        # (miss) + $0.60 out per 1M tokens off-peak.
         monkeypatch.setattr(
             "janito.providers.deepseek.cost._utcnow",
             lambda: datetime(2026, 8, 17, 12, 0, tzinfo=timezone.utc),
         )
-        text = _display_usage_text("deepseek", "deepseek-v4-flash", _usage(1_000_000, 1_000_000, 0))
-        assert "Cost: 88.0¢ (off-peak)" in text
+        text = _display_usage_text("deepseek", "deepseek-flash", _usage(1_000_000, 1_000_000, 0))
+        assert "Cost: 75.0¢ (off-peak)" in text
 
     def test_usage_line_cost_bills_cached_input_at_cache_hit(monkeypatch):
         """Cached input tokens are billed at the provider's cache-hit rate."""
         # Pin the request time to a weekday off-peak hour (Monday 12:00 UTC);
-        # 500k of the 1M input tokens are cache hits ($0.007 vs $0.22/1M).
+        # 500k of the 1M input tokens are cache hits ($0.003 vs $0.15/1M).
         monkeypatch.setattr(
             "janito.providers.deepseek.cost._utcnow",
             lambda: datetime(2026, 8, 17, 12, 0, tzinfo=timezone.utc),
         )
-        text = _display_usage_text("deepseek", "deepseek-v4-flash", _usage(1_000_000, 1_000_000, 500_000))
-        assert "Cost: 77.3¢ (off-peak)" in text
+        text = _display_usage_text("deepseek", "deepseek-flash", _usage(1_000_000, 1_000_000, 500_000))
+        assert "Cost: 67.7¢ (off-peak)" in text
 
     def test_usage_line_cost_google_provider():
         """Google Gemini usage calculates cost using google.cost module."""
@@ -195,8 +195,8 @@ if pytest is not None:
 
         The displayed In/Out/Cached keep the final round's counters, but the
         cost must be computed from the turn totals (tool-call rounds
-        included).  DeepSeek V4-Flash off-peak: $0.22 in (miss) + $0.66 out
-        + $0.007 cache-hit per 1M tokens.
+        included).  DeepSeek Flash off-peak: $0.15 in (miss) + $0.60 out
+        + $0.003 cache-hit per 1M tokens.
         """
         from janito.llm_adapters.usage import TurnInfo
 
@@ -217,10 +217,10 @@ if pytest is not None:
             turn_cached=500_000,
             turn_output=2_000_000,
         )
-        text = _display_usage_text("deepseek", "deepseek-v4-flash", stats)
-        # Cost from turn totals: 1.5M*$0.22 + 0.5M*$0.007 + 2M*$0.66
-        #   = 0.33 + 0.0035 + 1.32 = 1.6535.
-        assert "Cost: 1.7$ (off-peak)" in text
+        text = _display_usage_text("deepseek", "deepseek-flash", stats)
+        # Cost from turn totals: 1.5M*$0.15 + 0.5M*$0.003 + 2M*$0.60
+        #   = 0.225 + 0.0015 + 1.2 = 1.4265.
+        assert "Cost: 1.4$ (off-peak)" in text
         # The displayed counters still mirror the final round's request.
         assert "In: 1m" in text
         assert "Out: 1m" in text

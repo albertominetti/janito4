@@ -23,13 +23,13 @@ def _toolbar_text(shell):
 def test_toolbar_reports_session_provider(session_provider):
     """A session provider passed to the shell wins over the configured default."""
     shell = InteractiveShell(
-        model="deepseek-v4-flash",
+        model="deepseek-flash",
         no_history=True,
         provider=session_provider,
     )
     with patch("janito.general_config.get_active_provider", return_value="alibaba"):
         text = _toolbar_text(shell)
-    assert "deepseek-v4-flash" in text  # model is always shown
+    assert "deepseek-flash" in text  # model is always shown
     expected = session_provider if session_provider else "alibaba"
     assert f"provider: {expected}" in text
     # The other provider must never appear.

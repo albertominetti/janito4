@@ -106,7 +106,7 @@ if pytest is not None:
             cc.set_config_from_cli("model=nope", "deepseek")
         message = str(excinfo.value)
         assert "for provider 'deepseek'" in message
-        assert "deepseek-v4-flash" in message
+        assert "deepseek-flash" in message
         assert "deepseek-v4-pro" in message
 
     def test_set_model_canonicalizes_builtin_casing(monkeypatch, tmp_path):
@@ -304,12 +304,12 @@ if pytest is not None:
         # Values are stored as ints (coerced via INT_VALUED_KEYS), and the
         # returned key is the model-scoped path.
         key, value = cc.set_config_from_cli("max-input-tokens=200000", "deepseek")
-        assert key == "deepseek.models.deepseek-v4-flash.max-input-tokens"
+        assert key == "deepseek.models.deepseek-flash.max-input-tokens"
         assert value == 200000
         config = _read_config(config_path)
         assert config["providers"]["openai"]["models"]["gpt-5.6-luna"]["max-input-tokens"] == 128000
         assert config["providers"]["minimax"]["models"]["MiniMax-M3"]["max-input-tokens"] == 256000
-        assert config["providers"]["deepseek"]["models"]["deepseek-v4-flash"]["max-input-tokens"] == 200000
+        assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["max-input-tokens"] == 200000
 
     def test_set_max_input_tokens_rejects_non_int(monkeypatch, tmp_path):
         config_path = _use_temp_config(monkeypatch, tmp_path)
@@ -466,7 +466,7 @@ if pytest is not None:
         config = _read_config(config_path)
         assert config["providers"]["openai"]["models"]["gpt-5.6-luna"]["api-type"] == "Completions"
         assert config["providers"]["minimax"]["models"]["MiniMax-M3"]["api-type"] == "Responses"
-        assert config["providers"]["deepseek"]["models"]["deepseek-v4-flash"]["api-type"] == "Responses"
+        assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["api-type"] == "Responses"
         assert cl.load_api_type("openai") == "Completions"
         assert cl.load_api_type("minimax") == "Responses"
 
@@ -622,7 +622,7 @@ if pytest is not None:
         assert cl.load_stateless_mode_from_config("deepseek") is False
         config = _read_config(config_path)
         assert config["providers"]["openai"]["models"]["gpt-5.6-luna"]["stateless-mode"] is True
-        assert config["providers"]["deepseek"]["models"]["deepseek-v4-flash"]["stateless-mode"] is False
+        assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["stateless-mode"] is False
 
     def test_set_stateless_mode_normalizes_bool_forms(monkeypatch, tmp_path):
         config_path = _use_temp_config(monkeypatch, tmp_path)
@@ -633,7 +633,7 @@ if pytest is not None:
         cc.set_config_from_cli("stateless-mode=OFF", "deepseek")
         config = _read_config(config_path)
         assert config["providers"]["openai"]["models"]["gpt-5.6-luna"]["stateless-mode"] is True
-        assert config["providers"]["deepseek"]["models"]["deepseek-v4-flash"]["stateless-mode"] is False
+        assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["stateless-mode"] is False
 
     def test_set_stateless_mode_rejects_unknown_values(monkeypatch, tmp_path):
         config_path = _use_temp_config(monkeypatch, tmp_path)
