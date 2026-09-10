@@ -30,11 +30,9 @@ running_privileges = None
 
 # Rich style for the privilege badge shown in the ``Turn N`` rule, by
 # category. Light backgrounds with black text; resolved by priority:
-# WRITE present -> red, else EXEC present -> yellow, else READ present ->
-# green, else grey.
+# WRITE or EXEC present -> red, else READ present -> green, else grey.
 _PRIV_RICH_STYLE_BY_KIND = {
     "w": "black on bright_red",
-    "x": "black on bright_yellow",
     "r": "black on bright_green",
     "none": "black on grey70",
 }
@@ -49,8 +47,8 @@ def privilege_badge() -> tuple[str, str]:
     full-privileges default) -> ``full``, ``""`` (nothing granted) ->
     ``no-access``.
 
-    Colour priority, resolved in order: ``WRITE`` present -> red, else
-    ``EXEC`` present -> yellow, else ``READ`` present -> green, else grey.
+    Colour priority, resolved in order: ``WRITE`` or ``EXEC`` present -> red,
+    else ``READ`` present -> green, else grey.
     """
     priv = running_privileges
     read = priv is None or priv.READ
@@ -61,7 +59,7 @@ def privilege_badge() -> tuple[str, str]:
     if read and write:
         return ("read-write", _PRIV_RICH_STYLE_BY_KIND["w"])
     if read and exec_:
-        return ("read-exec", _PRIV_RICH_STYLE_BY_KIND["x"])
+        return ("read-exec", _PRIV_RICH_STYLE_BY_KIND["w"])
     if write and exec_:
         return ("write-exec", _PRIV_RICH_STYLE_BY_KIND["w"])
     if read:
@@ -69,7 +67,7 @@ def privilege_badge() -> tuple[str, str]:
     if write:
         return ("write-only", _PRIV_RICH_STYLE_BY_KIND["w"])
     if exec_:
-        return ("exec-only", _PRIV_RICH_STYLE_BY_KIND["x"])
+        return ("exec-only", _PRIV_RICH_STYLE_BY_KIND["w"])
     return ("no-access", _PRIV_RICH_STYLE_BY_KIND["none"])
 
 

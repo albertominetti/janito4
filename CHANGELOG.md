@@ -26,6 +26,7 @@ Changes since `v4.39.0` (2026-09-05).
 
 ### Fixed
 - Corrected `ARCHITECTURE.md` path in `AGENTS.md` to `dev-docs/ARCHITECTURE.md`.
+- Privilege badge shows EXEC in red (same as WRITE) instead of yellow.
 
 ### Changed
 - Renamed DeepSeek default model `deepseek-v4-flash` to `deepseek-flash`
