@@ -7,6 +7,7 @@ Learn different ways to use janito.
 - [Interactive Mode](interactive-mode.md) - Chat with AI in an interactive terminal shell
 - [Single Prompt](single-prompt.md) - Run a single prompt and exit
 - [Web UI](web-ui.md) - Browser-based chat with `janito --web`
+- [Docker](docker.md) - Self-host the web UI headless in a container
 - [CLI vs Web UI](cli-vs-web.md) - Which features are available in each interface
 - [Logging](logging.md) - Enable debug logging and troubleshooting
 - [Accounting](accounting.md) - Track overall token/cost usage in a local SQLite log

@@ -68,6 +68,7 @@ Use OpenAI, local LLM servers (LM Studio, Ollama), any OpenAI-compatible API, or
 2. [Configure your settings](getting-started/quick-start.md)
 3. [Start chatting](usage/interactive-mode.md)
 4. [Launch the web UI](usage/web-ui.md) or compare the [two interfaces](usage/cli-vs-web.md)
+5. [Run the docker image](usage/docker.md) for a self-hosted headless web UI
 
 ## License
 

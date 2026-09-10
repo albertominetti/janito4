@@ -1,0 +1,44 @@
+# Version control
+.git
+.gitignore
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Runtime / local state
+.janito/
+.janitoignore
+.secrets.baseline
+.pre-commit-config.yaml
+.tox/
+.coverage
+htmlcov/
+
+# Docs & CI (not needed in the image)
+.github/
+docs/
+dev-docs/
+mkdocs.yml
+CHANGELOG.md
+AGENTS.md
+RELEASE.md
+README*.md
+skills-lock.json
+uv.lock
+
+# Tests & tooling
+tests/
+scripts/
+tox.ini
+
+# Misc
+*.log
+.DS_Store

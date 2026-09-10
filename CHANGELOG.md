@@ -8,3 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased](https://github.com/joaompinto/janito/compare/v4.40.0...HEAD)
 
 Changes since `v4.40.0` (2026-09-10).
+
+### Added
+- Docker container for the web UI (features/container): a slim image that
+  starts `janito --web --no-web-open` headless on `0.0.0.0`.
+  `.github/workflows/docker.yaml` builds
+  `linux/amd64` + `linux/arm64` with buildx and publishes to GHCR on every
+  `v*` tag and on `main` (`:latest`). See `docs/usage/docker.md`.
