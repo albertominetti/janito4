@@ -21,6 +21,13 @@ Changes since `v4.46.0` (2026-10-08).
   Lowercase `-r/--read` is unchanged. Documentation explains why choosing a
   task-appropriate role matters and its limits. Custom prompts remain unchanged.
 
+- **ACP (Agent Client Protocol) v1 agent** — `janito --acp` runs as an ACP
+  subprocess agent over stdio (newline-delimited JSON-RPC 2.0) for ACP-compatible
+  editors (e.g. Zed). Implements `initialize`, `session/new`, `session/prompt`,
+  and `session/cancel`; streams token/reasoning/tool updates; honors the
+  session `cwd`, ignores client-provided `mcpServers`, and keeps stdout clean by
+  redirecting all non-protocol output to stderr. See `docs/usage/acp.md`.
+
 ### Fixed
 
 - ChatGPT-plan login no longer strands users on "Already signed in" with an
