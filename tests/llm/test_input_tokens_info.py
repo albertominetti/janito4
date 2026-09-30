@@ -163,7 +163,7 @@ if pytest is not None:
     def test_usage_line_cost_anthropic_provider():
         """Anthropic usage calculates cost using anthropic.cost module."""
         # 1M input (cache miss) at $2 + 1M output at $10 per 1M tokens.
-        parts = _cost_usage_line("anthropic", "claude-sonnet-5", 1_000_000, 1_000_000, 0)
+        parts = _cost_usage_line("anthropic", "claude-sonnet-5-5", 1_000_000, 1_000_000, 0)
         assert parts["Cost"] == format_cost(12.0)
 
     def test_usage_line_cost_without_provider_model_is_na():

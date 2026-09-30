@@ -215,7 +215,7 @@ def test_sort_results_and_chart_entries():
         {"provider": "openai", "model": "gpt-6-luna", "out_tokens": 500},
         {"provider": "deepseek", "model": "gpt-6-luna", "out_tokens": 300},
         {"provider": "broken", "model": None, "out_tokens": None},
-        {"provider": "anthropic", "model": "claude-sonnet-5", "out_tokens": 400},
+        {"provider": "anthropic", "model": "claude-sonnet-5-5", "out_tokens": 400},
     ]
     sorted_results = pbm.sort_results(results)
     assert [r["out_tokens"] for r in sorted_results[:4]] == [500, 400, 300, 100]
@@ -224,7 +224,7 @@ def test_sort_results_and_chart_entries():
     entries = pbm.chart_entries(sorted_results)
     assert entries == [
         ("gpt-6-luna (openai)", 500),
-        ("claude-sonnet-5", 400),
+        ("claude-sonnet-5-5", 400),
         ("gpt-6-luna (deepseek)", 300),
         ("glm-5.3", 100),
     ]

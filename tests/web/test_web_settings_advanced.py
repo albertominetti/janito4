@@ -178,7 +178,7 @@ def test_patch_api_type_anthropic_aborts_without_package(client):
     """The native Anthropic SDK API type is rejected with 400 (nothing is
     written) when the optional `anthropic` package is not installed, with a
     message naming the package."""
-    cs.unset_config_value("anthropic.models.claude-sonnet-5.api-type")
+    cs.unset_config_value("anthropic.models.claude-sonnet-5-5.api-type")
     before = cs.load_config()
 
     resp = client.patch("/api/config", json={"api_type": "Anthropic", "provider": "anthropic"})

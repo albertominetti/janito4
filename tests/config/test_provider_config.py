@@ -251,10 +251,10 @@ if pytest is not None:
     def test_anthropic_provider():
         info = get_provider_config("anthropic")
         assert info is not None
-        assert info["default_model"] == "claude-sonnet-5"
-        model_entry = info["models"]["claude-sonnet-5"]
-        assert model_entry["max_input_tokens"] == 200000
-        assert model_entry["max_output_tokens"] == 64000
+        assert info["default_model"] == "claude-sonnet-5-5"
+        model_entry = info["models"]["claude-sonnet-5-5"]
+        assert model_entry["max_input_tokens"] == 1000000
+        assert model_entry["max_output_tokens"] == 128000
         assert info["endpoint"] == "https://api.anthropic.com/v1/"
         # Completions (OpenAI-compatible) is the built-in default; the native
         # Anthropic SDK API type is the second supported type.
@@ -268,9 +268,9 @@ if pytest is not None:
         # Case-insensitive lookup.
         assert get_provider_config("Anthropic")["endpoint"] == "https://api.anthropic.com/v1/"
         assert get_base_url_from_provider("anthropic") == "https://api.anthropic.com/v1/"
-        assert get_default_model_from_provider("anthropic") == "claude-sonnet-5"
-        assert get_default_max_input_tokens_from_provider("anthropic") == 200000
-        assert get_default_max_output_tokens_from_provider("anthropic") == 64000
+        assert get_default_model_from_provider("anthropic") == "claude-sonnet-5-5"
+        assert get_default_max_input_tokens_from_provider("anthropic") == 1000000
+        assert get_default_max_output_tokens_from_provider("anthropic") == 128000
         assert get_default_api_type_from_provider("anthropic") == "Completions"
         # claude-opus-5-5 and claude-fable-5-1 also ship built-in entries: both
         # support the Completions and native Anthropic SDK API types (default

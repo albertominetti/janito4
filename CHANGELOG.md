@@ -8,3 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased](https://github.com/joaompinto/janito/compare/v4.44.0...HEAD)
 
 Changes since `v4.44.0` (2026-09-23).
+
+### Changed
+- Anthropic provider: replace `claude-sonnet-5` with `claude-sonnet-5-5` as default model (1M input / 128K output, same $2 / $0.20 / $10 pricing).

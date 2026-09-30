@@ -14,19 +14,19 @@ Prompt caching
 --------------
 Anthropic applies prompt caching: cached input tokens (cache reads / hits)
 are billed at 10% of the base input rate (0.1x), e.g. $0.20/1M for
-claude-sonnet-5.  There is no peak-hour surcharge.
+claude-sonnet-5-5.  There is no peak-hour surcharge.
 """
 
 #: Per-1M-token rates (USD) keyed by model name:
 #: ``(input cache miss, input cache hit, output)``.
 #:
 #: Anthropic applies prompt caching: cached input tokens (cache reads) are
-#: billed at the cache-hit rate ($0.20/1M for claude-sonnet-5, 10% of the
+#: billed at the cache-hit rate ($0.20/1M for claude-sonnet-5-5, 10% of the
 #: base input rate).
 _MODEL_RATES: dict[str, tuple[float, float, float]] = {
     "claude-fable-5-1": (10.00, 1.00, 50.00),
     "claude-opus-5-5": (4.00, 0.40, 20.00),
-    "claude-sonnet-5": (2.00, 0.20, 10.00),
+    "claude-sonnet-5-5": (2.00, 0.20, 10.00),
 }
 
 

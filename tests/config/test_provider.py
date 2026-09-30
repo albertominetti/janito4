@@ -313,13 +313,13 @@ if pytest is not None:
         # per 1M tokens: 100k * $0.10 + 1M * $0.20 = 0.201 -> 21.0¢ (the
         # adaptive format re-renders it).
         assert get_provider_cost("meta", "muse-spark-1.3-contributor", 100_000, 1_000_000, 0) == "21.0¢"
-        # Anthropic ships a cost module: claude-sonnet-5 at $2 / $0.20 (cache
+        # Anthropic ships a cost module: claude-sonnet-5-5 at $2 / $0.20 (cache
         # hit) / $10 output per 1M tokens.
-        assert get_provider_cost("anthropic", "claude-sonnet-5", 1_000_000, 1_000_000, 0) == "12.0$"
+        assert get_provider_cost("anthropic", "claude-sonnet-5-5", 1_000_000, 1_000_000, 0) == "12.0$"
         # Cached input tokens are billed at the cache-hit rate.
-        assert get_provider_cost("anthropic", "claude-sonnet-5", 1_000_000, 1_000_000, 500_000) == "11.1$"
+        assert get_provider_cost("anthropic", "claude-sonnet-5-5", 1_000_000, 1_000_000, 500_000) == "11.1$"
         # Case-insensitive provider lookup.
-        assert get_provider_cost("Anthropic", "claude-sonnet-5", 1_000_000, 1_000_000, 0) == "12.0$"
+        assert get_provider_cost("Anthropic", "claude-sonnet-5-5", 1_000_000, 1_000_000, 0) == "12.0$"
         # claude-opus-5-5 at $4 / $0.40 (cache hit) / $20 output per 1M tokens.
         assert get_provider_cost("anthropic", "claude-opus-5-5", 1_000_000, 1_000_000, 0) == "24.0$"
         # claude-fable-5-1 at $10 / $1 (cache hit) / $50 output per 1M tokens.
@@ -383,7 +383,7 @@ if pytest is not None:
         off_peak = datetime(2026, 8, 16, 12, 0, tzinfo=timezone.utc)
         # Anthropic also ignores is_reference (estimate unchanged).
         # 1M * $2 + 1M * $10 = 12.00.
-        assert anthropic_get_cost("claude-sonnet-5", 1_000_000, 1_000_000, 0, is_reference=True) == "12.000000$"
+        assert anthropic_get_cost("claude-sonnet-5-5", 1_000_000, 1_000_000, 0, is_reference=True) == "12.000000$"
         # Alibaba, Google, and MiniMax ignore is_reference (estimate unchanged).
         assert alibaba_get_cost("qwen3.8-max", 1_000_000, 1_000_000, 0, is_reference=True) == "8.000000$"
         assert alibaba_get_cost("qwen3.8-flash", 1_000_000, 1_000_000, 0, is_reference=True) == "0.620000$"

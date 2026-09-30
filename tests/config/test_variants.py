@@ -232,6 +232,7 @@ def test_variant_inherits_base_models_dict(monkeypatch, tmp_path):
         "gpt-6-sol",
         "gpt-6-luna",
         "gpt-6-astra",
+        "gpt-6.1-sol",
     ]
     # Per-model accessors resolve through the inherited models dict.
     assert provider.default_model() == "gpt-6-luna"

@@ -141,7 +141,7 @@ if pytest is not None:
         state = c._init_conversation_state(
             "hi",
             "anthropic",
-            "claude-sonnet-5",
+            "claude-sonnet-5-5",
             previous_messages=history,
             instructions=None,
         )
@@ -200,7 +200,7 @@ if pytest is not None:
             reasoning_effort=None,
         )
         c = anthropic_api.AnthropicClient(config)
-        thinking, max_out, max_in, reasoning = c._resolve_model_settings("anthropic", "claude-sonnet-5")
+        thinking, max_out, max_in, reasoning = c._resolve_model_settings("anthropic", "claude-sonnet-5-5")
         # thinking comes from the resolved config (make_config defaults it
         # to False).
         assert thinking is False
@@ -221,7 +221,7 @@ if pytest is not None:
             reasoning_effort=None,
         )
         c = anthropic_api.AnthropicClient(config)
-        _, _, max_in, _ = c._resolve_model_settings("anthropic", "claude-sonnet-5")
+        _, _, max_in, _ = c._resolve_model_settings("anthropic", "claude-sonnet-5-5")
         assert max_in == 4096
 
     def test_dashscope_model_settings_returns_4_tuple():

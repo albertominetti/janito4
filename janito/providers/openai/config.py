@@ -94,5 +94,33 @@ PROVIDER_CONFIG: dict = {
                 },
             ],
         },
+        "gpt-6.1-sol": {
+            "supported_api_types": [
+                "Responses",
+                "Completions",
+            ],
+            "default_api_type": "Responses",  # built-in default (Responses is the default)
+            "stateless_mode": False,  # server-side conversation state (previous_response_id)
+            "max_input_tokens": 1050000,
+            "max_output_tokens": 128000,
+            # GPT-6 models support configurable reasoning depth via the
+            # OpenAI-compatible reasoning_effort parameter.  The built-in
+            # default is the standard level (medium).
+            "default_reasoning_effort": "medium",
+            "supported_reasoning_efforts": [
+                {
+                    "effort": "low",
+                    "description": "Lighter reasoning for fast responses",
+                },
+                {
+                    "effort": "medium",
+                    "description": "Standard reasoning depth",
+                },
+                {
+                    "effort": "high",
+                    "description": "Deep reasoning for complex problems",
+                },
+            ],
+        },
     },
 }

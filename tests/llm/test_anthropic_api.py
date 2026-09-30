@@ -194,7 +194,7 @@ if pytest is not None:
         config = make_config(
             api_type="Anthropic",
             provider="anthropic",
-            model="claude-sonnet-5",
+            model="claude-sonnet-5-5",
             base_url="https://api.anthropic.com",
         )
         with pytest.raises(RuntimeError) as exc:

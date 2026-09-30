@@ -134,11 +134,11 @@ def test_price_shows_na_for_models_without_cost_module(monkeypatch, tmp_path, ca
     out = capsys.readouterr().out
     # The anthropic provider now ships a cost module, so its models show a
     # real cost, not N/A.  /price bills 1M cache-miss input + 1M cache-hit
-    # input + 1M output: claude-sonnet-5 -> $2 + $0.20 + $10 = 12.200000$.
+    # input + 1M output: claude-sonnet-5-5 -> $2 + $0.20 + $10 = 12.200000$.
     # Numbers over words (Rule 6): numeric source of truth, one smoke assert.
     from janito.providers.costing import get_provider_cost_value
 
-    assert get_provider_cost_value("anthropic", "claude-sonnet-5", 1_000_000, 0, 0, is_reference=True) is not None
+    assert get_provider_cost_value("anthropic", "claude-sonnet-5-5", 1_000_000, 0, 0, is_reference=True) is not None
     assert get_provider_cost_value("openai", "gpt-6-luna", 1_000_000, 0, 0, is_reference=True) is not None
     assert out.strip() != ""
     assert "anthropic" in out
