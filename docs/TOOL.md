@@ -588,6 +588,11 @@ return {
 
 ## CLI Testing Harness
 
+`RunGitHubCLI` passes the discovered `gh` executable and parsed command arguments
+directly to the subprocess runner rather than invoking a shell. This avoids
+shell interpretation of executable paths (notably Windows paths containing
+spaces). Quote command arguments containing spaces in the `cmdline` string.
+
 Every tool module should include a `main()` function so it can be tested
 standalone:
 

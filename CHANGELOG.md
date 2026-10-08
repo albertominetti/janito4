@@ -11,6 +11,8 @@ Changes since `v4.45.0` (2026-09-30).
 
 ### Fixed
 
+- Run GitHub CLI commands directly with an argument list so Windows executable paths containing spaces are handled correctly.
+
 - Make `--login` skip the browser flow when ChatGPT OAuth credentials are already stored.
 
 - Refuse `--set-api-key` for OpenAI while OAuth details are stored; require

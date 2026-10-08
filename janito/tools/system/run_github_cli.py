@@ -17,6 +17,7 @@ issues, pull requests, releases, and other GitHub artifacts. Use with caution.
 
 import json
 import os
+import shlex
 import shutil
 import sys
 import time
@@ -190,12 +191,11 @@ class RunGitHubCLI(BaseTool):
             }
 
         try:
-            full_command = f"{gh_path} {cmdline}"
+            command = [gh_path, *shlex.split(cmdline, posix=os.name != "nt")]
             self._report_exec_start(cmdline)
-            shell_command = self._build_shell_command(full_command)
 
             exit_code, stdout_lines, stderr_lines, execution_time_ms = stream_execute(
-                shell_command,
+                command,
                 os.getcwd(),
                 True,
                 True,
@@ -243,14 +243,6 @@ class RunGitHubCLI(BaseTool):
         if len(code_preview) > 200:
             code_preview = code_preview[:200] + "..."
         self.report_start(f"⚙️ Executing: gh {code_preview}")
-
-    def _build_shell_command(self, full_command: str) -> list[str] | str:
-        """Resolve a shell to run the command through (prefer bash, fall back to sh)."""
-        shell_exe = shutil.which("bash") or shutil.which("sh")
-        if shell_exe:
-            return [shell_exe, "-c", full_command]
-        # Extremely unlikely (we already found gh), but be safe.
-        return full_command
 
     def _build_result(
         self,
