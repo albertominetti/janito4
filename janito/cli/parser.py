@@ -30,6 +30,7 @@ Configuration:
   falling back to the global ~/.janito, and list operations show both.
 
 Options:
+  --delete-api-key   Delete the selected provider's stored API key
   --set-api-key KEY  Set API key for a provider (uses --provider, or the
                      configured default provider when --provider is omitted;
                      prompts before overwriting an existing key, use -f/--force
@@ -260,10 +261,18 @@ Note: --set and --set-api-key must be used in separate commands.
 
     parser.add_argument("--list-mcp", action="store_true", help="List all MCP services and their tools")
 
-    parser.add_argument(
+    auth_keys = parser.add_mutually_exclusive_group()
+    auth_keys.add_argument(
         "--set-api-key",
         metavar="KEY",
         help="Set API key for a provider (uses --provider, or the configured " "default provider when omitted)",
+    )
+
+    auth_keys.add_argument(
+        "--delete-api-key",
+        action="store_true",
+        help="Delete the API key from the selected config location (uses --provider, "
+        "or the configured default provider when omitted)",
     )
 
     parser.add_argument(
@@ -298,7 +307,8 @@ Note: --set and --set-api-key must be used in separate commands.
     parser.add_argument(
         "--logout",
         action="store_true",
-        help="Sign out (remove ChatGPT credentials) for the active provider (--provider or the configured provider; only 'openai')",
+        help="Sign out (remove ChatGPT credentials) for the active provider "
+        "(--provider or the configured provider; only 'openai')",
     )
 
     parser.add_argument(

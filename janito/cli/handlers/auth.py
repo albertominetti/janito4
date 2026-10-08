@@ -4,6 +4,7 @@ import json
 import sys
 
 from ...auth_config import (
+    delete_api_key,
     get_api_key,
     get_auth_file_path,
     get_auth_file_paths,
@@ -115,6 +116,31 @@ def handle_set_api_key(args) -> int:
     else:
         print("Error: Failed to store API key", file=sys.stderr)
         return 1
+
+
+def handle_delete_api_key(args) -> int:
+    """Delete the selected provider's API key from the config write target."""
+    provider = args.provider or load_provider_from_config()
+    if not provider:
+        print(
+            "Error: no provider given and no default provider is configured. "
+            "Pass --provider <name>, or set a default with janito --set provider=<name>.",
+            file=sys.stderr,
+        )
+        return 1
+
+    auth_file = get_auth_file_path()
+    if not delete_api_key(provider):
+        print(
+            f"Error: no API key found for provider '{provider}' in {auth_file}, "
+            "or the key could not be deleted.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(f"API key deleted for provider '{provider}'")
+    print(f"  Config file: {auth_file}")
+    return 0
 
 
 def handle_list_keys(args) -> int:

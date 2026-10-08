@@ -1,6 +1,6 @@
 """CLI command handlers."""
 
-from .auth import handle_list_keys, handle_set_api_key
+from .auth import handle_delete_api_key, handle_list_keys, handle_set_api_key
 from .config import (
     handle_config_interactive,
     handle_get_config,
@@ -25,6 +25,7 @@ from .variants import handle_create_variant, handle_delete_variant
 __all__ = [
     "handle_config_interactive",
     "handle_create_variant",
+    "handle_delete_api_key",
     "handle_delete_secret",
     "handle_delete_variant",
     "handle_get_config",

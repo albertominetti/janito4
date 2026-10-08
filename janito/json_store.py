@@ -231,8 +231,18 @@ class AuthConfigStore(JsonFileStore):
         return self.list_keys(exclude=frozenset({self.OAUTH_KEY}))
 
     def delete_api_key(self, provider: str) -> bool:
-        """Delete the API key for a provider; returns ``True`` if removed."""
-        config = self.load()
+        """Delete an API key from the write target only, preserving fallbacks.
+
+        Returns ``False`` if absent, unreadable, or the save fails. Do not
+        merge here: deleting a local override must not copy base credentials
+        into the local file or pretend to remove a base-only key.
+        """
+        try:
+            with self.file_path().open(encoding="utf-8") as f:
+                config = json.load(f)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.error(f"Failed to read auth.json for API-key deletion: {exc}")
+            return False
         if provider in config and isinstance(config[provider], str):
             del config[provider]
             return self.save(config)

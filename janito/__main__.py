@@ -27,6 +27,7 @@ from . import privileges as _privileges_mod
 from .cli.chat import print_version_banner, run_interactive_chat, run_single_prompt
 from .cli.handlers import (
     handle_config_interactive,
+    handle_delete_api_key,
     handle_delete_secret,
     handle_get_config,
     handle_get_secret,
@@ -225,6 +226,7 @@ def _dispatch_flag_command(args) -> int | None:
         (bool(getattr(args, "logout", False)), lambda: handle_logout(args)),
         (args.show_providers, lambda: handle_show_providers(args)),
         (args.set_api_key, lambda: handle_set_api_key(args)),
+        (args.delete_api_key, lambda: handle_delete_api_key(args)),
         (args.list_secrets, lambda: handle_list_secrets(args)),
         (args.get_secret is not None, lambda: handle_get_secret(args)),
         (args.install_skill, lambda: handle_install_skill(args.install_skill)),

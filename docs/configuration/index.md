@@ -151,6 +151,25 @@ precedence over `~/.janito/auth.json`.
 
 > **Note:** When using CLI arguments, `--set` and `--set-api-key` must be run as **separate commands**. They cannot be combined in a single invocation.
 
+### Deleting an API key
+
+```bash
+janito --delete-api-key --provider openai
+janito --delete-api-key                     # Use the configured default provider
+janito -l --delete-api-key --provider openai # Delete only the project-local key
+```
+
+`--delete-api-key` removes the provider's key without prompting from the selected
+`auth.json`: the global config directory by default, the directory selected by
+`--config-dir`, or `./.janito` with `--local`. Other providers, the configured
+default provider, and OAuth credentials are unchanged. Use `--logout` to remove
+OAuth credentials. Setting and deleting an API key cannot be combined.
+
+The command exits with an error if no provider can be resolved, no key exists in
+the selected file, or deletion fails. Deleting a local key may expose a global
+fallback key; it does **not** remove that global key. Run without `--local` to
+remove the global key separately.
+
 > **Note:** If OAuth details are stored for OpenAI, `--set-api-key` is refused without prompting or changing credentials. Run `janito --logout --provider openai` first to switch to API-key authentication. Stored OpenAI OAuth details do not prevent setting keys for other providers.
 
 > **Note:** If an API key is already stored for a provider, `--set-api-key` warns you and asks for confirmation before overwriting it.
