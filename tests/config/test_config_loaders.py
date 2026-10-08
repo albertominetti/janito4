@@ -68,7 +68,7 @@ if pytest is not None:
             json.dumps(
                 {
                     "providers": {
-                        "openai": {"models": {"gpt-6-luna": {"max-input-tokens": 128000}}},
+                        "openai": {"models": {"gpt-6.1-sol": {"max-input-tokens": 128000}}},
                         "minimax": {"models": {"MiniMax-M3": {"max_input_tokens": 4096}}},
                     }
                 }
@@ -103,7 +103,7 @@ if pytest is not None:
             json.dumps(
                 {
                     "providers": {
-                        "openai": {"models": {"gpt-6-luna": {"stateless-mode": "true"}}},
+                        "openai": {"models": {"gpt-6.1-sol": {"stateless-mode": "true"}}},
                         "deepseek": {"models": {"deepseek-flash": {"stateless-mode": "FALSE"}}},
                         "xai": {"models": {"grok-4.6": {"stateless-mode": True}}},
                         "zai": {"models": {"glm-5.3-flash": {"stateless-mode": False}}},

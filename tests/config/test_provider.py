@@ -43,6 +43,11 @@ if pytest is not None:
         assert p.model_config().get("default_api_type") == "Responses"
         assert p.is_custom is False
 
+    def test_openai_default_model():
+        provider = Provider("openai")
+        assert provider.default_model() == "gpt-6.1-sol"
+        assert provider.model_config().data is provider.model_config("gpt-6.1-sol").data
+
     def test_provider_custom():
         p = Provider("custom")
         assert p.is_custom is True
@@ -147,7 +152,7 @@ if pytest is not None:
         from janito.llm_clients.openai.responses_state import stateless_mode
 
         monkeypatch.setattr(config_dir_mod, "_config_dir", tmp_path)
-        gc.set_config_value("openai.models.gpt-6-luna.stateless-mode", True)
+        gc.set_config_value("openai.models.gpt-6.1-sol.stateless-mode", True)
         assert Provider("openai").model_config().get("stateless_mode", False) is False
         assert stateless_mode("openai", None) is True
         assert get_provider("openai").model_config().get("stateless_mode", False) is False

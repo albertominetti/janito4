@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Changes since `v4.45.0` (2026-09-30).
 
+### Changed
+
+- Change the built-in OpenAI default model from `gpt-6-luna` to `gpt-6.1-sol`.
+
 ### Fixed
 
 - Run GitHub CLI commands directly with an argument list so Windows executable paths containing spaces are handled correctly.

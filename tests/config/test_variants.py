@@ -235,7 +235,7 @@ def test_variant_inherits_base_models_dict(monkeypatch, tmp_path):
         "gpt-6.1-sol",
     ]
     # Per-model accessors resolve through the inherited models dict.
-    assert provider.default_model() == "gpt-6-luna"
+    assert provider.default_model() == registry.get("openai").default_model()
     assert provider.model_config().get("max_input_tokens") == 1050000
     assert provider.model_config().get("max_output_tokens") == 128000
     assert provider.model_config().get("supported_api_types") == [
@@ -246,7 +246,7 @@ def test_variant_inherits_base_models_dict(monkeypatch, tmp_path):
     # A per-model override lands under the VARIANT name (providers.<variant>.
     # models.<model>.<key>), not the base provider's.
     key, value = cc.set_config_from_cli("max-output-tokens=32000", "openai-tokenplan")
-    assert key == "openai-tokenplan.models.gpt-6-luna.max-output-tokens"
+    assert key == f"openai-tokenplan.models.{provider.default_model()}.max-output-tokens"
     assert cl.load_max_output_tokens("openai-tokenplan") == 32000
     # The base provider is unaffected.
     assert cl.load_max_output_tokens("openai") is None

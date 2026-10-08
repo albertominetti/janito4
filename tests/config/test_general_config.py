@@ -27,6 +27,7 @@ import janito.config_loaders as cl
 import janito.config_store as cs
 import janito.general_config as gc
 from janito.config_cli import ProviderRequiredError
+from janito.providers.models import Provider
 
 try:
     import anthropic  # noqa: F401
@@ -269,7 +270,7 @@ if pytest is not None:
         assert cl.load_max_output_tokens("minimax") == 4096
         # Verify storage structure (model-scoped path).
         config = _read_config(config_path)
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["max-output-tokens"] == 8192
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["max-output-tokens"] == 8192
         assert config["providers"]["minimax"]["models"]["MiniMax-M3"]["max-output-tokens"] == 4096
 
     def test_unset_max_output_tokens_per_provider(monkeypatch, tmp_path):
@@ -307,7 +308,7 @@ if pytest is not None:
         assert key == "deepseek.models.deepseek-flash.max-input-tokens"
         assert value == 200000
         config = _read_config(config_path)
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["max-input-tokens"] == 128000
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["max-input-tokens"] == 128000
         assert config["providers"]["minimax"]["models"]["MiniMax-M3"]["max-input-tokens"] == 256000
         assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["max-input-tokens"] == 200000
 
@@ -345,7 +346,7 @@ if pytest is not None:
         # Verify storage structure (model-scoped path).
         config = _read_config(config_path)
         assert config["providers"]["alibaba"]["models"]["qwen3.8-max"]["effort"] == "xhigh"
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["effort"] == "low"
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["effort"] == "low"
         # Model-scoped set/get round-trips through the CLI helpers.
         assert cc.get_config_from_cli("effort", "alibaba") == "xhigh"
 
@@ -376,11 +377,12 @@ if pytest is not None:
         provider's configured/default model; an unknown provider raises
         ModelRequiredError when no model can be resolved."""
         config_path = _use_temp_config(monkeypatch, tmp_path)
-        # With no configured model, openai's built-in default (gpt-6-luna)
+        # With no configured model, openai's built-in default
         # is used as the target model.
         key, _ = cc.set_config_from_cli("max-output-tokens=32000", "openai")
-        assert key == "openai.models.gpt-6-luna.max-output-tokens"
-        assert _read_config(config_path)["providers"]["openai"]["models"]["gpt-6-luna"]["max-output-tokens"] == 32000
+        assert key == f"openai.models.{Provider('openai').default_model()}.max-output-tokens"
+        model_settings = _read_config(config_path)["providers"]["openai"]["models"][Provider("openai").default_model()]
+        assert model_settings["max-output-tokens"] == 32000
         # The custom provider has no default model -> ModelRequiredError.
         from janito.config_cli import ModelRequiredError
 
@@ -401,7 +403,7 @@ if pytest is not None:
         assert cc.unset_config_key_from_cli("effort", "alibaba") is True
         config = _read_config(config_path)
         assert "alibaba" not in config.get("providers", {})
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["effort"] == "low"
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["effort"] == "low"
         # Removing again returns False (already gone)
         assert cc.unset_config_key_from_cli("effort", "alibaba") is False
 
@@ -449,7 +451,7 @@ if pytest is not None:
         assert cl.load_api_type("openai") == "Responses"
         assert cl.load_api_type("minimax") == "Completions"
         config = _read_config(config_path)
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["api-type"] == "Responses"
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["api-type"] == "Responses"
         assert config["providers"]["minimax"]["models"]["MiniMax-M3"]["api-type"] == "Completions"
 
     def test_set_api_type_normalizes_case(monkeypatch, tmp_path):
@@ -457,12 +459,12 @@ if pytest is not None:
         # Lowercase values (as in `--set api-type=completions`) are normalized
         # to the canonical casing when stored.
         key, value = cc.set_config_from_cli("api-type=completions", "openai")
-        assert key == "openai.models.gpt-6-luna.api-type"
+        assert key == f"openai.models.{Provider('openai').default_model()}.api-type"
         assert value == "Completions"
         cc.set_config_from_cli("api-type=responses", "minimax")
         cc.set_config_from_cli("api-type=RESPONSES", "deepseek")
         config = _read_config(config_path)
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["api-type"] == "Completions"
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["api-type"] == "Completions"
         assert config["providers"]["minimax"]["models"]["MiniMax-M3"]["api-type"] == "Responses"
         assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["api-type"] == "Responses"
         assert cl.load_api_type("openai") == "Completions"
@@ -619,18 +621,18 @@ if pytest is not None:
         assert cl.load_stateless_mode_from_config("openai") is True
         assert cl.load_stateless_mode_from_config("deepseek") is False
         config = _read_config(config_path)
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["stateless-mode"] is True
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["stateless-mode"] is True
         assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["stateless-mode"] is False
 
     def test_set_stateless_mode_normalizes_bool_forms(monkeypatch, tmp_path):
         config_path = _use_temp_config(monkeypatch, tmp_path)
         # 1/0 and on/off (in any case) are normalized to real booleans.
         key, value = cc.set_config_from_cli("stateless-mode=1", "openai")
-        assert key == "openai.models.gpt-6-luna.stateless-mode"
+        assert key == f"openai.models.{Provider('openai').default_model()}.stateless-mode"
         assert value is True
         cc.set_config_from_cli("stateless-mode=OFF", "deepseek")
         config = _read_config(config_path)
-        assert config["providers"]["openai"]["models"]["gpt-6-luna"]["stateless-mode"] is True
+        assert config["providers"]["openai"]["models"][Provider("openai").default_model()]["stateless-mode"] is True
         assert config["providers"]["deepseek"]["models"]["deepseek-flash"]["stateless-mode"] is False
 
     def test_set_stateless_mode_rejects_unknown_values(monkeypatch, tmp_path):

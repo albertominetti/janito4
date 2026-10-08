@@ -7,7 +7,7 @@ CONFIG option.
 
 #: The config entry for the ``openai`` provider.
 PROVIDER_CONFIG: dict = {
-    "default_model": "gpt-6-luna",
+    "default_model": "gpt-6.1-sol",
     "endpoint": None,  # Standard OpenAI - no base_url needed
     "models": {
         "gpt-6-sol": {

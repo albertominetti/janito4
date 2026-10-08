@@ -72,7 +72,7 @@ janito --show-providers
 Supported Providers (12):
 ============================================================
   openai [active]
-    Model:         gpt-6-luna (default)
+    Model:         gpt-6.1-sol (default)
     API types:     Responses (default), Completions
     Endpoint:      default OpenAI (no custom base URL)
     API key:       (not set)
@@ -96,11 +96,14 @@ and which still need a key or an endpoint.
 
 ## OpenAI
 
+The built-in default model is `gpt-6.1-sol`. An explicitly configured model
+or a per-call `--model` selection takes precedence.
+
 ### Configuration
 
 ```bash
 # Step 1: Set provider and model
-janito --set provider=openai --set model=gpt-6-luna
+janito --set provider=openai --set model=gpt-6.1-sol
 # Step 2: Store API key
 janito --set-api-key="sk-your-key" --provider openai
 ```

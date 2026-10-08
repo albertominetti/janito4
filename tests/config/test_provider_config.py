@@ -187,11 +187,11 @@ if pytest is not None:
         model *within* the provider instead of the whole provider entry."""
         # model=None returns the full provider entry.
         info = get_provider_config("openai")
-        assert info["default_model"] == "gpt-6-luna"
+        assert info["default_model"] == "gpt-6.1-sol"
         assert get_provider_config("openai") == info
         # model given returns that model's entry inside the provider.
-        model_info = get_provider_config("openai", "gpt-6-luna")
-        assert model_info == info["models"]["gpt-6-luna"]
+        model_info = get_provider_config("openai", "gpt-6.1-sol")
+        assert model_info == info["models"]["gpt-6.1-sol"]
         assert model_info["max_output_tokens"] == 128000
         # Case-insensitive provider lookup works with a model too.
         assert get_provider_config("MiniMax", "MiniMax-M3")["thinking"] == {"type": "adaptive"}
@@ -200,7 +200,7 @@ if pytest is not None:
         assert get_provider_config("openai", "no-such-model") is None
         # Unknown provider -> None.
         assert get_provider_config("bogus") is None
-        assert get_provider_config("bogus", "gpt-6-luna") is None
+        assert get_provider_config("bogus", "gpt-6.1-sol") is None
         # The "custom" provider has no built-in models.
         assert get_provider_config("custom", "any-model") is None
 
@@ -415,7 +415,7 @@ if pytest is not None:
 
     def test_default_model_and_max_tokens():
         # Providers expose built-in default models / max tokens.
-        assert get_default_model_from_provider("openai") == "gpt-6-luna"
+        assert get_default_model_from_provider("openai") == "gpt-6.1-sol"
         assert get_default_model_from_provider("alibaba") == "qwen3.8-flash"
         assert get_default_max_input_tokens_from_provider("openai") == 1050000
         assert get_default_max_output_tokens_from_provider("openai") == 128000
@@ -1036,11 +1036,11 @@ if pytest is not None:
         # OpenAI's built-in default is False (server-side); force stateless
         # on via a model-scoped config override (stored under
         # providers.openai.models.<model>.stateless-mode).
-        gc.set_config_value("openai.models.gpt-6-luna.stateless-mode", True)
+        gc.set_config_value("openai.models.gpt-6.1-sol.stateless-mode", True)
         assert get_stateless_mode_from_provider("openai") is True
 
         # Clearing the override falls back to the built-in default.
-        gc.unset_config_value("openai.models.gpt-6-luna.stateless-mode")
+        gc.unset_config_value("openai.models.gpt-6.1-sol.stateless-mode")
         assert get_stateless_mode_from_provider("openai") is False
 
         # DeepSeek's built-in default is True (stateless); force server-side
