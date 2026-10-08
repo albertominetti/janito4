@@ -153,6 +153,9 @@ precedence over `~/.janito/auth.json`.
 
 ### Deleting an API key
 
+If `janito --login` reports an existing OpenAI API key, run
+`janito --delete-api-key --provider openai`, then re-run `janito --login`.
+
 ```bash
 janito --delete-api-key --provider openai
 janito --delete-api-key                     # Use the configured default provider

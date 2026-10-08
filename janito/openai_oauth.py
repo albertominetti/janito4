@@ -543,8 +543,8 @@ def do_login(
     if existing_key:
         raise ChatGPTAuthError(
             "An API key is already configured for provider 'openai'. "
-            "Remove it first (janito --delete-api-key --provider openai "
-            "or delete the key), then re-run: janito --login",
+            "Remove it first (janito --delete-api-key --provider openai), "
+            "then re-run: janito --login",
             kind="api_key_present",
         )
     previous = get_chatgpt_oauth() or {}
