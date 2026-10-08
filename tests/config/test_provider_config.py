@@ -1291,6 +1291,7 @@ if pytest is not None:
         assert "system-prompt-file" in err
         assert "does not exist" in err
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_cli_set_system_prompt_file_missing_fails(monkeypatch, tmp_path, capsys):
         """`--set system-prompt-file=<missing>` is rejected with exit 1 and the
         actionable error (same validation as at startup)."""

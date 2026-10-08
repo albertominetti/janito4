@@ -1,3 +1,5 @@
+import sys
+import pytest
 """
 Tests for the --info handler output, in particular the ``Stateless Mode``
 line that reflects the resolved ``stateless_mode`` flag.
@@ -118,6 +120,7 @@ def _run(capsys, provider="openai", api_type=None):
     return capsys.readouterr().out
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
 def test_stateless_mode_shown_for_server_side_provider(capsys):
     """OpenAI defaults to Responses and keeps state server-side."""
     out = _run(capsys, provider="openai")

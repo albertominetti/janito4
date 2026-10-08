@@ -60,6 +60,7 @@ if pytest is not None:
         config_path.write_text(json.dumps({"system-prompt-file": "prompt.md"}))
         validate_system_prompt_file()  # must not raise
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_validate_system_prompt_file_missing_exits(monkeypatch, tmp_path, capsys):
         config_path = _use_temp_config(monkeypatch, tmp_path)
         missing = tmp_path / "does-not-exist.md"

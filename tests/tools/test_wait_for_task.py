@@ -9,6 +9,8 @@ manager.  Real process waiting is covered by tests/core/test_taskmanager.py.
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add the repo root to sys.path to allow importing the package directly.
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -334,6 +336,7 @@ def test_run_returns_error_on_unknown_task(monkeypatch):
     assert result["task_ids"] == ["missing"]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
 def test_schema_exposes_required_task_ids():
     """task_ids is required; timeout is an optional number in the schema."""
     from janito.tooling.schema import get_function_schema

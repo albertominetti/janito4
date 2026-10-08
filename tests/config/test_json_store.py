@@ -96,6 +96,8 @@ if pytest is not None:
         assert store.list_keys(exclude={"provider"}) == ["a"]
 
     def test_base_save_sets_0600_permissions(monkeypatch, tmp_path):
+        if sys.platform == "win32":
+            pytest.skip(reason="POSIX chmod 0600 not enforced on Windows ACLs")
         _point_at(monkeypatch, tmp_path)
         store = JsonFileStore("secret.json", chmod_600=True)
         store.save({"k": "v"})
@@ -141,6 +143,8 @@ if pytest is not None:
     # ------------------------------------------------------------------
 
     def test_auth_store_domain_methods(monkeypatch, tmp_path):
+        if sys.platform == "win32":
+            pytest.skip(reason="POSIX chmod 0600 not enforced on Windows ACLs")
         base = _point_at(monkeypatch, tmp_path)
         store = AuthConfigStore()
         assert store.set_api_key("openai", "sk-1") is True
@@ -188,6 +192,8 @@ if pytest is not None:
     # ------------------------------------------------------------------
 
     def test_secrets_store_domain_methods(monkeypatch, tmp_path):
+        if sys.platform == "win32":
+            pytest.skip(reason="POSIX chmod 0600 not enforced on Windows ACLs")
         base = _point_at(monkeypatch, tmp_path)
         store = SecretsConfigStore()
         assert store.set_secret("token", "abc") is True

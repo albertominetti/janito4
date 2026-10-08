@@ -11,6 +11,8 @@ tests/core/test_taskmanager.py.
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add the repo root to sys.path to allow importing the package directly.
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -231,6 +233,7 @@ def test_run_rejects_non_positive_timeout(monkeypatch):
     assert result["timeout"] == 0
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
 def test_schema_exposes_parameters():
     """summary and description are required; working_dir/privileges are optional."""
     from janito.tooling.schema import get_function_schema

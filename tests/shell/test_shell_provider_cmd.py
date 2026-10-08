@@ -21,6 +21,8 @@ and the send function.
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add the repo root to sys.path to allow importing the package directly.
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -144,7 +146,7 @@ def test_switch_updates_shell_model_display(monkeypatch, tmp_path):
     assert _provider_handler().handle(shell, "/provider openai") is True
 
     assert shell.provider == "openai"
-    assert shell.model == "gpt-6-luna"  # openai's built-in default model
+    assert shell.model == "gpt-6.1-sol"  # openai's built-in default model
 
 
 def test_non_provider_input_is_not_handled(capsys):

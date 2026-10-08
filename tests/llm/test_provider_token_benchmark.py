@@ -10,6 +10,7 @@ summary), the JSON report builder, provider discovery via
 import importlib.util
 import json
 import struct
+import sys
 import zlib
 from pathlib import Path
 
@@ -186,6 +187,7 @@ def test_parse_list_keys():
     assert pbm.parse_list_keys(output) == ["alibaba_tp", "deepseek", "openai"]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="#!/bin/sh fixture is not a valid Win32 application")
 def test_discover_providers(tmp_path):
     fake = tmp_path / "fake-janito"
     fake.write_text(
@@ -196,6 +198,7 @@ def test_discover_providers(tmp_path):
     assert pbm.discover_providers(str(fake)) == ["deepseek", "openai"]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="#!/bin/sh fixture is not a valid Win32 application")
 def test_discover_providers_failure(tmp_path):
     fake = tmp_path / "fake-janito"
     fake.write_text("#!/bin/sh\necho 'boom' >&2\nexit 3\n", encoding="utf-8")
@@ -336,6 +339,7 @@ def test_resolve_artifact_path(tmp_path):
     assert default_json == Path(tempfile.gettempdir()) / "provider_tokens.json"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="#!/bin/sh fixture is not a valid Win32 application")
 def test_main_list_providers(tmp_path, capsys):
     fake = tmp_path / "fake-janito"
     fake.write_text(

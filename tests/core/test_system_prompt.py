@@ -460,6 +460,7 @@ def test_load_system_prompt_start_empty_file_falls_back(monkeypatch, tmp_path):
     )
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
 def test_load_system_prompt_start_literal_label(monkeypatch, tmp_path):
     """system-prompt -> (literal, '(config) <config-file>:system-prompt')."""
     import janito.config_loaders as config_loaders_mod

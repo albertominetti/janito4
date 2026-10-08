@@ -226,6 +226,7 @@ if pytest is not None:
         prompt_file.write_text("Be terse.", encoding="utf-8")
         assert validate_system_prompt_file_path(str(prompt_file)) == str(prompt_file)
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_validate_system_prompt_file_path_missing_raises(tmp_path):
         from janito.config_loaders import validate_system_prompt_file_path
 

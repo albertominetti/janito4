@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Any
 
 import pytest
@@ -9,6 +10,43 @@ import pytest
 from janito.llm_adapters.observer import NullObserver
 from janito.llm_clients.api_config import APIConfig
 from janito.ui.config import UIConfig
+
+
+@pytest.fixture(autouse=True)
+def _win32_prompt_session_stub(monkeypatch):
+    """Stub PromptSession on Windows (no Win32 console under pytest).
+
+    prompt_toolkit's Win32Output requires a real console
+    (GetConsoleScreenBufferInfo) and raises NoConsoleScreenBufferError
+    under pytest-xdist workers. InteractiveShell logic does not need a
+    real console, so replace the session factory with a dummy that
+    accepts the same kwargs and exposes a patchable ``prompt``.
+    """
+    if sys.platform != "win32":
+        yield
+        return
+    try:
+        import janito.shell.session as session_mod
+    except Exception:
+        yield
+        return
+
+    class _DummyPromptSession:
+        def __init__(self, *args, **kwargs):
+            self._kwargs = kwargs
+            # Preserve attributes tests rely on (completer, history, etc.).
+            self.completer = kwargs.get("completer")
+            self.history = kwargs.get("history")
+            self.key_bindings = kwargs.get("key_bindings")
+            self.style = kwargs.get("style")
+            self.complete_while_typing = kwargs.get("complete_while_typing", True)
+            self.multiline = kwargs.get("multiline", False)
+
+        def prompt(self, *args, **kwargs):
+            raise EOFError
+
+    monkeypatch.setattr(session_mod, "PromptSession", _DummyPromptSession)
+    yield
 
 
 @pytest.fixture(autouse=True)

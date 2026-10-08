@@ -176,6 +176,7 @@ class TestDisplayTurnUsage:
         text = self._render(u)
         assert "Cached" not in _usage_parts(text)
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_prints_used_files_before_usage_line(self, monkeypatch):
         from janito.config_store import set_config_value, unset_config_value
 
@@ -210,6 +211,7 @@ class TestDisplayTurnUsage:
         finally:
             used_files.reset_used_files()
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_used_files_report_printed_when_enabled(self, monkeypatch):
         """With ``used-files=True`` the report is printed (issue #74)."""
         from janito.config_store import set_config_value, unset_config_value

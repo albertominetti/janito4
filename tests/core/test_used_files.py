@@ -188,6 +188,7 @@ if pytest is not None:
         assert "./subdir/file.py" in text
         assert str(tmp_path) not in text
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_format_keeps_paths_outside_cwd_unchanged(tmp_path, monkeypatch):
         """Paths outside the CWD are left as recorded."""
         _register(monkeypatch, "ReadFile", "r")

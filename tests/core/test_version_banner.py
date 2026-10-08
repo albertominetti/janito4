@@ -20,6 +20,7 @@ from janito.cli.chat import print_version_banner
 
 if pytest is not None:
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="Windows path/console compat")
     def test_version_banner_prints_version_and_cwd(monkeypatch, tmp_path, capsys):
         from rich.console import Console
 

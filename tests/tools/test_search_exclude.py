@@ -131,21 +131,21 @@ def test_find_files_excludes_directory(search_tree):
     result = FindFiles().run(paths=".", pattern="*.txt", exclude="skip")
 
     assert result["success"] is True
-    assert set(result["files"]) == {"keep/a.txt", "top.txt"}
+    assert {f.replace("\\", "/") for f in result["files"]} == {"keep/a.txt", "top.txt"}
 
 
 def test_find_files_excludes_directory_glob(search_tree):
     result = FindFiles().run(paths=".", pattern="*.txt", exclude="skip/*")
 
     assert result["success"] is True
-    assert set(result["files"]) == {"keep/a.txt", "top.txt"}
+    assert {f.replace("\\", "/") for f in result["files"]} == {"keep/a.txt", "top.txt"}
 
 
 def test_find_files_excludes_single_file(search_tree):
     result = FindFiles().run(paths=".", pattern="*.txt", exclude="top.txt")
 
     assert result["success"] is True
-    assert set(result["files"]) == {"keep/a.txt", "skip/b.txt"}
+    assert {f.replace("\\", "/") for f in result["files"]} == {"keep/a.txt", "skip/b.txt"}
 
 
 def test_find_files_multiple_exclude_patterns(search_tree):

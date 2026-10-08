@@ -5,6 +5,8 @@ Test script for the path_utils module.
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add the repo root to sys.path to allow importing the package directly.
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -44,6 +46,7 @@ def test_norm_path():
     print("All tests passed!")
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="HOME env is ignored on Windows (uses USERPROFILE)")
 def test_display_path_maps_home_to_tilde(monkeypatch, tmp_path):
     """Paths under the home directory are shown as ~/relative."""
     home = tmp_path / "home"
@@ -55,6 +58,7 @@ def test_display_path_maps_home_to_tilde(monkeypatch, tmp_path):
     assert display_path(str(project)) == "~/project"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="HOME env is ignored on Windows (uses USERPROFILE)")
 def test_display_path_maps_home_itself_to_tilde(monkeypatch, tmp_path):
     """The home directory itself is shown as ~."""
     home = tmp_path / "home"
@@ -64,6 +68,7 @@ def test_display_path_maps_home_itself_to_tilde(monkeypatch, tmp_path):
     assert display_path(home) == "~"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="HOME env is ignored on Windows (uses USERPROFILE)")
 def test_display_path_leaves_other_paths_unchanged(monkeypatch, tmp_path):
     """Paths outside the home directory are left unchanged."""
     home = tmp_path / "home"

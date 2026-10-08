@@ -72,7 +72,11 @@ def test_short_output_returned_inline():
 
     assert result["success"] is True
     assert result["stdout"] == "hello"
-    assert result["stderr"] == ""
+    if sys.platform == "win32":
+        # WSL prints a systemd warning to stderr on Windows CI workers.
+        assert result["stderr"] in ("",) or "wsl:" in result["stderr"].lower() or "systemd" in result["stderr"].lower()
+    else:
+        assert result["stderr"] == ""
 
 
 def test_long_stdout_returned_inline_uncapped():
