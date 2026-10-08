@@ -20,6 +20,9 @@ Changes since `v4.45.0` (2026-09-30).
 
 ### Fixed
 
+- Keep the interactive shell running after provider API or connection errors,
+  printing the error and rolling back the failed conversation turn.
+
 - Do not load `RunBashCode` on Windows, even when Git Bash or WSL is installed; use `RunPowerShellCode` instead.
 
 - Run GitHub CLI commands directly with an argument list so Windows executable paths containing spaces are handled correctly.

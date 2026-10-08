@@ -30,6 +30,19 @@ provider and privileges.)
     Unrecognized `/slash` commands are rejected with an `Unknown command:`
     message instead of being sent to the model.
 
+## API Errors
+
+Provider API errors (including connection/DNS failures, timeouts, authentication
+errors and exhausted rate-limit retries) are printed without terminating the
+interactive shell. The failed prompt and any partial conversation output are
+removed from history; the next prompt continues from the last completed turn.
+Fix the connection or provider configuration, then submit your prompt again.
+This also applies to turns sent through slash commands such as `/notools`.
+Unexpected programming errors still propagate rather than being hidden.
+
+Rolling back conversation history does not undo any tool actions already
+performed during the failed turn.
+
 ## Resuming a Session (`-C` / `--continue`)
 
 An interactive session **mirrors its conversation** to `./.janito/session.json`

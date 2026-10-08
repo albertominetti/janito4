@@ -18,6 +18,7 @@ from rich.text import Text
 
 from ..conversation_utils import rollback_to_last_turn
 from ..llm_clients import RequestCancelled
+from ..llm_clients.client_support import api_error_types
 from ..llm_clients.openai.responses_items import message_item
 from ..tooling.turn_privileges import (
     reset_turn_privileges,
@@ -475,6 +476,14 @@ class InteractiveShell(_SessionMixin):
                 # includes it.
                 self.conversation_items.append(message_item("user", user_input))
             print("Request cancelled (Enter). The prompt stays in the conversation history.")
+        except api_error_types() as e:
+            # SDK failures are recoverable: discard the failed exchange and
+            # return to the input loop. Stateless Responses clients may mutate
+            # the supplied items in place before a later streaming round fails.
+            self._rollback_history()
+            if self.conversation_items is not None:
+                del self.conversation_items[self.conversation_turn :]
+            print(f"API error ({type(e).__name__}): {e}")
         except KeyboardInterrupt:
             # Rollback any messages appended during this prompt; the
             # recorded turn start is dropped too, so the rolled-back turn no

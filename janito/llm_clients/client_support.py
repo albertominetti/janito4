@@ -20,7 +20,10 @@ response id) forward -- so it lives here with the clients that handle it.
 """
 
 import logging
+import sys
 from typing import Any
+
+from openai import APIError
 
 from janito.mcp_manager import get_mcp_manager
 from janito.tooling.tools_registry import tools_loading_enabled
@@ -53,6 +56,27 @@ class RequestCancelled(Exception):
     def __init__(self, message: str = "Request cancelled by user (pressed Enter)."):
         super().__init__(message)
         self.partial_result = None
+
+
+def api_error_types() -> tuple[type[Exception], ...]:
+    """Known SDK/transport errors that an interactive session can recover from.
+
+    Optional SDKs are loaded by their clients, not by the shell. Inspect only
+    already-loaded modules so error handling never installs or imports an
+    optional dependency. Resolve at catch time because a turn may load its SDK.
+    """
+    error_types = [APIError]
+    for module_name, class_name in (
+        ("anthropic", "APIError"),
+        ("google.genai.errors", "APIError"),
+        ("requests.exceptions", "RequestException"),
+        ("httpx", "HTTPError"),
+        ("httpx2", "HTTPError"),
+    ):
+        module = sys.modules.get(module_name)
+        if module is not None:
+            error_types.append(getattr(module, class_name))
+    return tuple(error_types)
 
 
 def _load_mcp(use_mcp: bool) -> tuple[Any, list[dict[str, Any]]]:
