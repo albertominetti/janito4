@@ -115,6 +115,32 @@ janito --config
 > `~/.janito/config.json`. janito does not read `OPENAI_*` environment
 > variables. See [Configuration Priority](index.md#configuration-priority).
 
+### Sign in with ChatGPT (plan allowance, no API key)
+
+As an alternative to API-key billing, the `openai` provider supports
+OpenAI's **Sign in with ChatGPT** flow for eligible ChatGPT plans
+([official docs](https://developers.openai.com/siwc)):
+
+```bash
+janito --login    # browser sign-in, credentials stay in ~/.janito/auth.json (0600)
+janito --logout   # remove the ChatGPT credentials (API key untouched)
+```
+
+The provider is taken from `-p/--provider` or the configured `provider`; if
+neither is set, OpenAI is used. For example, `janito --provider openai --login`
+explicitly selects OpenAI.
+
+Notes:
+
+- `--login` is a no-op when ChatGPT OAuth credentials are already stored.
+- `--logout` reports when no ChatGPT credentials are stored and exits successfully.
+  It removes ChatGPT credentials only; the OpenAI API key is left untouched.
+- `--login` fails when an API key is already set and no OAuth credentials exist; remove it first
+  so billing never switches silently.
+- ChatGPT-plan requests use the Responses API with `store: false`
+  (the session re-sends history); `--api-type Completions` is rejected
+  with OAuth. ChatGPT-plan allowance and API billing are separate systems.
+
 ### Reasoning Level
 
 The GPT-6 models support configurable reasoning depth via the

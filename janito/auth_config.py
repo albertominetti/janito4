@@ -5,7 +5,8 @@ Handles storage and retrieval of API keys in ~/.janito/auth.json
 
 Structure:
 {
-    "openai": "sk-xxxxx..."
+    "openai": "sk-xxxxx...",
+    "openai_chatgpt_oauth": { ... }  # issue #154, structured OAuth record
 }
 
 The default provider is a configuration concern: it is stored under the
@@ -95,3 +96,18 @@ def delete_api_key(provider: str) -> bool:
         True if deleted, False if not found
     """
     return _store.delete_api_key(provider)
+
+
+def get_chatgpt_oauth() -> dict | None:
+    """Return the stored ChatGPT OAuth record (issue #154), if any."""
+    return _store.get_oauth()
+
+
+def set_chatgpt_oauth(record: dict) -> bool:
+    """Persist the ChatGPT OAuth record (issue #154); returns success."""
+    return _store.set_oauth(record)
+
+
+def delete_chatgpt_oauth() -> bool:
+    """Delete the ChatGPT OAuth record (issue #154); ``True`` if removed."""
+    return _store.delete_oauth()

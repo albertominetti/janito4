@@ -7,6 +7,7 @@ from ...auth_config import (
     get_api_key,
     get_auth_file_path,
     get_auth_file_paths,
+    get_chatgpt_oauth,
     set_api_key,
 )
 from ...config_keys import get_masked_api_key
@@ -51,6 +52,9 @@ def handle_set_api_key(args) -> int:
     config.json). If no default provider is configured either, the command
     fails with an error.
 
+    Stored OAuth details for OpenAI block this command. Log out first to
+    switch to API-key authentication.
+
     If an API key is already stored for the provider, the user is warned and
     prompted to approve the overwrite unless ``--force`` was given. When stdin
     is not interactive and ``--force`` was not given, the overwrite is refused
@@ -76,6 +80,14 @@ def handle_set_api_key(args) -> int:
             )
             return 1
         print(f"Using configured provider '{provider}'")
+
+    if provider == "openai" and get_chatgpt_oauth() is not None:
+        print(
+            f"Error: OAuth details are already configured for provider '{provider}'. "
+            "Run janito --logout --provider openai before setting an API key.",
+            file=sys.stderr,
+        )
+        return 1
 
     force = getattr(args, "force", False)
     existing_key = get_api_key(provider)
@@ -138,7 +150,9 @@ def handle_list_keys(args) -> int:
         print(f"Config file: {auth_file}")
         with open(auth_file, encoding="utf-8") as f:
             config = json.load(f)
-        providers = list(config.keys())
+        from ...json_store import AuthConfigStore
+
+        providers = [k for k in config.keys() if k != AuthConfigStore.OAUTH_KEY]
         if not providers:
             print("  (no providers configured)")
             print()

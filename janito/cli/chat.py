@@ -447,8 +447,10 @@ def run_interactive_chat(args):
     # by the single helper the Responses client itself uses.
     if api_type == "Responses" and provider != "(not configured)":
         from ..llm_clients.openai.responses_state import stateless_mode
+        from ..runtime_config import oauth_session_active
 
-        state = "client-side" if stateless_mode(provider, model) else "server-side"
+        oauth_effective = oauth_session_active(provider)
+        state = "client-side" if stateless_mode(provider, model, force=oauth_effective) else "server-side"
     else:
         state = "client-side"
     Console().print(

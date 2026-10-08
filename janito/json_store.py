@@ -1,5 +1,4 @@
-"""
-Shared JSON-file store base class for Janito configuration.
+"""Shared JSON-file store base class for Janito configuration.
 
 ``auth_config`` (``~/.janito/auth.json``), ``secrets_config``
 (``~/.janito/secrets.json``) and ``mcp_config`` (``~/.janito/mcp_services.json``)
@@ -180,7 +179,16 @@ class JsonFileStore:
 
 
 class AuthConfigStore(JsonFileStore):
-    """Storage for ``~/.janito/auth.json`` (provider -> API key)."""
+    """Storage for ``~/.janito/auth.json`` (provider -> API key).
+
+    ChatGPT-plan OAuth state for the ``openai`` provider is stored under the
+    reserved ``openai_chatgpt_oauth`` key as a structured dict (issue #154).
+    Plain-string entries remain API keys; the OAuth key is excluded from the
+    API-key listing so ``--list-keys`` keeps showing key status only.
+    """
+
+    #: Reserved auth.json key holding the ChatGPT OAuth record (issue #154).
+    OAUTH_KEY = "openai_chatgpt_oauth"
 
     def __init__(self):
         super().__init__("auth.json")
@@ -201,9 +209,17 @@ class AuthConfigStore(JsonFileStore):
         return result
 
     def get_api_key(self, provider: str) -> str | None:
-        """Get the API key for a provider, or ``None`` when absent."""
+        """Get the API key for a provider, or ``None`` when absent.
+
+        Only plain-string entries count as API keys: the structured
+        ``openai_chatgpt_oauth`` record is never returned here.
+        """
         config = self.load()
         api_key = config.get(provider)
+        if isinstance(api_key, dict):
+            # Structured OAuth record, not an API key.
+            logger.debug(f"Ignoring structured OAuth record for provider: {provider}")
+            return None
         if api_key:
             logger.debug(f"API key found for provider: {provider}")
         else:
@@ -212,13 +228,40 @@ class AuthConfigStore(JsonFileStore):
 
     def list_providers(self) -> list:
         """List all configured providers (auth.json only holds API keys)."""
-        return self.list_keys()
+        return self.list_keys(exclude=frozenset({self.OAUTH_KEY}))
 
     def delete_api_key(self, provider: str) -> bool:
         """Delete the API key for a provider; returns ``True`` if removed."""
         config = self.load()
-        if provider in config:
+        if provider in config and isinstance(config[provider], str):
             del config[provider]
+            return self.save(config)
+        return False
+
+    # ------------------------------------------------------------------
+    # ChatGPT-plan OAuth record (issue #154, stored in auth.json)
+    # ------------------------------------------------------------------
+
+    def get_oauth(self) -> dict | None:
+        """Return the stored ChatGPT OAuth record, or ``None`` when absent."""
+        config = self.load()
+        record = config.get(self.OAUTH_KEY)
+        return dict(record) if isinstance(record, dict) else None
+
+    def set_oauth(self, record: dict) -> bool:
+        """Persist the ChatGPT OAuth record; returns success."""
+        config = self.load()
+        config[self.OAUTH_KEY] = dict(record)
+        result = self.save(config)
+        if result:
+            logger.info("ChatGPT OAuth credentials saved")
+        return result
+
+    def delete_oauth(self) -> bool:
+        """Delete the ChatGPT OAuth record; returns ``True`` if removed."""
+        config = self.load()
+        if self.OAUTH_KEY in config:
+            del config[self.OAUTH_KEY]
             return self.save(config)
         return False
 

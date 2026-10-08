@@ -113,10 +113,12 @@ def handle_info(args) -> int:
     ]
     if api_type == "Responses":
         from ...llm_clients.openai.responses_state import stateless_mode
+        from ...runtime_config import oauth_session_active
 
+        oauth_effective = oauth_session_active(provider)
         responses_display = (
             "stateless (client re-sends history)"
-            if stateless_mode(provider, model)
+            if stateless_mode(provider, model, force=oauth_effective)
             else "server-side (previous_response_id)"
         )
         rows.append(("Stateless Mode", responses_display))

@@ -154,7 +154,10 @@ def _print_config_info(
     # client re-sends the full history on every request, e.g. DeepSeek).
     stateless_mode_display = ""
     if api_type == "Responses":
-        if stateless_mode(provider, model):
+        from janito.runtime_config import oauth_session_active
+
+        oauth_effective = oauth_session_active(provider)
+        if stateless_mode(provider, model, force=oauth_effective):
             stateless_mode_display = "stateless (client re-sends history)"
         else:
             stateless_mode_display = "server-side (previous_response_id)"

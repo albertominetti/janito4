@@ -18,16 +18,21 @@ from janito.providers.registry import get_provider
 from .responses_items import message_item
 
 
-def stateless_mode(provider: str, model: str | None) -> bool:
+def stateless_mode(provider: str, model: str | None, *, force: bool = False) -> bool:
     """Whether the Responses API keeps the conversation on the server.
 
     Resolved for the effective ``model``: a per-provider/model config
     override wins over the built-in default (``True`` for server-side
     providers such as OpenAI; ``False`` for stateless endpoints such as
-    DeepSeek's ``/responses``).  The single resolution point for this
-    capability -- shared by the conversation-state setup below and the CLI
-    banner's ``(server-side / client-side)`` annotation.
+    DeepSeek's ``/responses``).  ``force`` (issue #154) overrides to
+    stateless regardless of configuration: ChatGPT OAuth sessions require
+    ``store:false``, so the resolved session is effectively stateless
+    without mutating persistent config.  The single resolution point for
+    this capability -- shared by the conversation-state setup below and
+    the CLI banner's ``(server-side / client-side)`` annotation.
     """
+    if force:
+        return True
     from janito.config_loaders import load_stateless_mode_from_config
 
     override = load_stateless_mode_from_config(provider, model)
@@ -37,6 +42,9 @@ def stateless_mode(provider: str, model: str | None) -> bool:
     return bool(found.model_config(model).get("stateless_mode", False)) if found is not None else False
 
 
+OAUTH_AUTH_TYPE = "chatgpt_oauth"
+
+
 def _init_conversation_state(
     provider: str,
     model: str | None,
@@ -44,6 +52,9 @@ def _init_conversation_state(
     previous_items: list[dict[str, Any]] | None,
     instructions: str | None,
     prompt: str,
+    *,
+    force_stateless: bool = False,
+    is_oauth: bool = False,
 ) -> tuple[bool, str | None, list[dict[str, Any]] | None, str | list[dict[str, Any]], list[dict[str, Any]] | None,]:
     """Set up the server-side or stateless conversation state.
 
@@ -56,9 +67,17 @@ def _init_conversation_state(
     until a turn completes; ``None`` for stateless conversations.
 
     The ``stateless_mode`` flag is resolved for the effective ``model``
-    (a per-provider/model config override wins over the built-in default).
+    (a per-provider/model config override wins over the built-in default),
+    OR-forced by ``force_stateless`` (issue #154: ChatGPT OAuth requires
+    ``store:false`` for the resolved session only).
+
+    ChatGPT OAuth (``is_oauth``) is stateless but must NOT fold
+    ``instructions`` into a ``system`` input item: the Codex backend
+    rejects it with ``400 {'detail': 'System messages are not allowed'}``.
+    The instructions travel via the top-level ``instructions`` parameter
+    instead (see ``_build_call_kwargs``).
     """
-    stateless_mode_flag = stateless_mode(provider, model)
+    stateless_mode_flag = stateless_mode(provider, model, force=force_stateless)
     if not stateless_mode_flag:
         response_id = previous_response_id
         conversation_items: list[dict[str, Any]] | None = None
@@ -87,7 +106,10 @@ def _init_conversation_state(
         conversation_items = list(previous_items or [])
         # Fold the system instructions into the history on the first turn so
         # the stateless server receives the full context on every request.
-        if not conversation_items and instructions:
+        # Exception: ChatGPT OAuth must not send system items at all (the
+        # backend rejects them); instructions go via the top-level
+        # ``instructions`` parameter instead.
+        if not conversation_items and instructions and not is_oauth:
             conversation_items.append(message_item("system", instructions))
         conversation_items.append(message_item("user", prompt))
         input_items = conversation_items
@@ -131,6 +153,82 @@ def _reasoning_param(model: str, reasoning_effort: str | None, provider: str | N
     return reasoning
 
 
+def _item_text(item: dict[str, Any]) -> str:
+    """Extract the plain text from a Responses message input item."""
+    parts: list[str] = []
+    for block in item.get("content") or []:
+        if isinstance(block, dict) and block.get("text"):
+            parts.append(str(block["text"]))
+    return "".join(parts)
+
+
+def _sanitize_oauth_input(
+    input_items: str | list[dict[str, Any]],
+    instructions: str | None,
+) -> tuple[str | list[dict[str, Any]], str | None]:
+    """Strip system/developer items for ChatGPT OAuth, merging into instructions.
+
+    Belt-and-braces for the ``400 {'detail': 'System messages are not
+    allowed'}`` backend rule: any ``system``/``developer`` message items
+    already in the history (e.g. carried in ``previous_items``) are lifted
+    into the top-level ``instructions`` string and removed from ``input``.
+    """
+    if isinstance(input_items, str):
+        return input_items, instructions
+    lifted: list[str] = []
+    cleaned: list[dict[str, Any]] = []
+    for item in input_items:
+        if (
+            isinstance(item, dict)
+            and item.get("type") == "message"
+            and item.get("role") in ("system", "developer")
+        ):
+            text = _item_text(item).strip()
+            if text:
+                lifted.append(text)
+        else:
+            cleaned.append(item)
+    if lifted:
+        # Order: lifted history first, then the current instructions.
+        parts = [*lifted]
+        if instructions and instructions not in parts:
+            parts.append(instructions)
+        return cleaned, "\n\n".join(parts)
+    return cleaned, instructions
+
+
+def _apply_stateless_options(
+    call_kwargs: dict[str, Any], provider: str | None, model: str, stateless_mode: bool
+) -> None:
+    """Set ``store``/``include`` for stateless providers (in place)."""
+    if not stateless_mode:
+        return
+    # Stateless providers: the full history is re-sent in ``input`` and
+    # the server must keep no copy of the conversation (Meta's docs pair
+    # the encrypted reasoning replay with store:false).
+    call_kwargs["store"] = False
+    # Request the model's declared optional output fields (e.g. Meta's
+    # "reasoning.encrypted_content") so the reasoning output items carry
+    # the encrypted chain of thought needed for stateless replay.
+    include = _responses_include(provider, model)
+    if include:
+        call_kwargs["include"] = include
+
+
+def _apply_instructions(
+    call_kwargs: dict[str, Any], stateless_mode: bool, instructions: str | None, is_oauth: bool
+) -> None:
+    """Set the top-level ``instructions`` parameter when needed (in place).
+
+    Stateless providers fold instructions into the client-side items
+    history, so no separate parameter is needed.  Server-side providers
+    always send them.  Exception: ChatGPT OAuth is stateless but rejects
+    system items, so it always uses ``instructions`` instead.
+    """
+    if instructions and (not stateless_mode or is_oauth):
+        call_kwargs["instructions"] = instructions
+
+
 def _build_call_kwargs(
     model: str,
     input_items: str | list[dict[str, Any]],
@@ -143,6 +241,7 @@ def _build_call_kwargs(
     instructions: str | None,
     builtin_tools=None,
     provider: str | None = None,
+    is_oauth: bool = False,
 ) -> dict[str, Any]:
     """Build the Responses API call parameters for one round.
 
@@ -164,23 +263,19 @@ def _build_call_kwargs(
     in ``output`` carry the encrypted chain of thought that stateless
     replay needs).
     """
+    if is_oauth:
+        # ChatGPT OAuth: lift any stray system/developer items into
+        # instructions (backend rejects them with 400) and drop
+        # temperature (stripped by the backend).
+        input_items, instructions = _sanitize_oauth_input(input_items, instructions)
     call_kwargs: dict[str, Any] = {
         "model": model,
         "input": input_items,
-        "temperature": 1.0,
     }
+    if not is_oauth:
+        call_kwargs["temperature"] = 1.0
 
-    if stateless_mode:
-        # Stateless providers: the full history is re-sent in ``input`` and
-        # the server must keep no copy of the conversation (Meta's docs pair
-        # the encrypted reasoning replay with store:false).
-        call_kwargs["store"] = False
-        # Request the model's declared optional output fields (e.g. Meta's
-        # "reasoning.encrypted_content") so the reasoning output items carry
-        # the encrypted chain of thought needed for stateless replay.
-        include = _responses_include(provider, model)
-        if include:
-            call_kwargs["include"] = include
+    _apply_stateless_options(call_kwargs, provider, model, stateless_mode)
 
     # Add max_output_tokens if max output tokens is set in config
     if max_output_tokens is not None:
@@ -212,14 +307,7 @@ def _build_call_kwargs(
     if response_id is not None:
         call_kwargs["previous_response_id"] = response_id
 
-    # System instructions: stateless providers fold them into the client-side
-    # items history (sent with every request), so no separate parameter is
-    # needed.  Server-side providers always send them -- some (e.g. Meta)
-    # do not persist ``instructions`` across ``previous_response_id`` turns
-    # and require it on every request; re-sending is also correct for those
-    # that do fold it into the stored conversation (OpenAI).
-    if not stateless_mode and instructions:
-        call_kwargs["instructions"] = instructions
+    _apply_instructions(call_kwargs, stateless_mode, instructions, is_oauth)
 
     # The effective model's built-in (native) tools (e.g. Alibaba/Qwen's
     # code_interpreter / web_search / web_extractor) are model

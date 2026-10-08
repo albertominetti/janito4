@@ -453,7 +453,7 @@ if pytest is not None:
         monkeypatch.setattr(
             ca,
             "_init_conversation_state",
-            lambda provider, model, previous_response_id, previous_items, instructions, prompt: (
+            lambda provider, model, previous_response_id, previous_items, instructions, prompt, **kwargs: (
                 False,
                 None,
                 None,

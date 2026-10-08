@@ -81,8 +81,13 @@ from .responses_helpers import (
     _validate_stream_result,
 )
 from .responses_items import ConversationResult, message_item
-from .responses_state import _build_call_kwargs, _init_conversation_state
+from .responses_state import OAUTH_AUTH_TYPE, _build_call_kwargs, _init_conversation_state
 from .responses_stream import _stream_response
+
+
+def _is_oauth_session(api_config: APIConfig) -> bool:
+    """Whether this session uses ChatGPT OAuth (system items forbidden)."""
+    return getattr(api_config, "auth_type", "api_key") == OAUTH_AUTH_TYPE
 
 # Import general configuration handling
 
@@ -257,6 +262,8 @@ class ResponsesClient(Client):
             previous_items,
             instructions,
             prompt,
+            force_stateless=bool(getattr(self.api_config, "force_stateless", False)),
+            is_oauth=_is_oauth_session(self.api_config),
         )
         return {
             "stateless_mode": stateless_mode,
@@ -309,6 +316,7 @@ class ResponsesClient(Client):
             state["instructions"],
             builtin_tools,
             provider=self.api_config.provider,
+            is_oauth=_is_oauth_session(self.api_config),
         )
 
     def _run_stream_round(

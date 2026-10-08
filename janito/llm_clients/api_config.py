@@ -29,7 +29,17 @@ class APIConfig:
         model: The effective model name.
         base_url: The resolved API base URL (``None`` = the standard OpenAI
             endpoint).
-        api_key: The API key from the auth store.
+        api_key: The resolved Bearer credential: the API key from the auth
+            store, or the ChatGPT OAuth access token when ``auth_type`` is
+            ``"chatgpt_oauth"`` (issue #154).  The origin is explicit in
+            ``auth_type`` so downstream code never guesses billing mode.
+        auth_type: How the Bearer credential was resolved: ``"api_key"`` or
+            ``"chatgpt_oauth"`` (openai only).
+        force_stateless: Runtime requirement forcing effective stateless
+            Responses behavior regardless of the configured
+            ``stateless_mode`` (True for ChatGPT OAuth sessions, where the
+            documented ``store:false`` requirement applies).  Never written
+            back to persistent config.
         max_output_tokens: Resolved max output tokens (never ``None``: falls
             back to the built-in default, then to 100_000).
         max_input_tokens: Resolved max input tokens (``None`` = unknown
@@ -57,14 +67,16 @@ class APIConfig:
     model: str
     base_url: str | None  # None = standard OpenAI endpoint
     api_key: str
+    auth_type: str = "api_key"  # "api_key" | "chatgpt_oauth"
+    force_stateless: bool = False
 
     # --- Resolved model settings (config override -> built-in default) ---
-    max_output_tokens: int  # never None: falls back to 100_000
-    max_input_tokens: int | None
-    reasoning_effort: str | None  # None = API's own default applies
-    thinking: bool | dict | None  # resolved: --thinking / /thinking flag or provider built-in default
-    preserve_thinking: Any  # config value; may be None
-    use_mcp: bool
+    max_output_tokens: int = 100_000  # never None: falls back to 100_000
+    max_input_tokens: int | None = None
+    reasoning_effort: str | None = None  # None = API's own default applies
+    thinking: bool | dict | None = None  # resolved: --thinking / /thinking flag or provider built-in default
+    preserve_thinking: Any = None  # config value; may be None
+    use_mcp: bool = True
 
 
 def build_api_config(
@@ -88,6 +100,13 @@ def build_api_config(
     ``turn_factory`` -- the same cheap rebuild that a provider/model
     switch performs.
 
+    ChatGPT OAuth (issue #154): when the resolved ``auth_type`` is
+    ``"chatgpt_oauth"``, ``force_stateless`` is set so the Responses client
+    sends ``store:false`` with full input-item replay, and
+    ``OAuth + Completions`` is rejected with an actionable error (token
+    sharing is Responses-only) instead of silently falling back to API-key
+    billing.
+
     Args:
         api_type: The canonical API type (``"Completions"``, ``"Responses"``,
             ``"Anthropic"``, ``"DashScope"``, ``"Gemini"``).  Also selects the
@@ -108,7 +127,8 @@ def build_api_config(
 
     Raises:
         ValueError: If the API key, model or endpoint cannot be resolved
-            (propagated from ``resolve_runtime_config``).
+            (propagated from ``resolve_runtime_config``), or if ChatGPT OAuth
+            is combined with an unsupported API type.
     """
     # Lazy imports avoid a cycle: completions_api imports APIConfig.
     from janito.config_loaders import (
@@ -118,10 +138,19 @@ def build_api_config(
     )
     from janito.general_config import get_active_provider
     from janito.providers.registry import get_provider
-    from janito.runtime_config import resolve_runtime_config
+    from janito.runtime_config import resolve_runtime_full
 
     provider = cli_provider or get_active_provider()
-    base_url, api_key, model = resolve_runtime_config(cli_model, cli_provider, cli_api_type=api_type)
+    base_url, api_key, model, credential = resolve_runtime_full(cli_model, cli_provider, cli_api_type=api_type)
+    auth_type = credential.auth_type
+    force_stateless = bool(credential.requires_stateless)
+
+    if auth_type == "chatgpt_oauth" and api_type != "Responses":
+        raise ValueError(
+            f"ChatGPT-plan authentication requires the Responses API, not '{api_type}'. "
+            f"Use --api-type Responses (or the provider's Responses default) "
+            f"with ChatGPT OAuth, or use API-key authentication for '{api_type}'."
+        )
 
     found = get_provider(provider)
     found_max_output = found.model_config(model).get("max_output_tokens") if found is not None else None
@@ -141,6 +170,8 @@ def build_api_config(
         model=model,
         base_url=base_url,
         api_key=api_key,
+        auth_type=auth_type,
+        force_stateless=force_stateless,
         max_output_tokens=max_output_tokens,
         max_input_tokens=max_input_tokens,
         reasoning_effort=reasoning_effort,

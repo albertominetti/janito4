@@ -290,6 +290,18 @@ Note: --set and --set-api-key must be used in separate commands.
     parser.add_argument("--list-keys", action="store_true", help="List configured providers and keys")
 
     parser.add_argument(
+        "--login",
+        action="store_true",
+        help="Sign in with ChatGPT for the active provider (--provider or the configured provider; only 'openai')",
+    )
+
+    parser.add_argument(
+        "--logout",
+        action="store_true",
+        help="Sign out (remove ChatGPT credentials) for the active provider (--provider or the configured provider; only 'openai')",
+    )
+
+    parser.add_argument(
         "--show-providers",
         action="store_true",
         help="List all supported providers and their built-in defaults, "

@@ -215,6 +215,65 @@ def _messages_to_input_items(messages: list[dict]) -> list[dict]:
     return items
 
 
+def _split_system_messages(messages: list[dict]) -> tuple[str | None, list[dict]]:
+    """Split system/developer messages out of OpenAI-format history.
+
+    Returns ``(instructions, filtered_messages)``. ChatGPT OAuth rejects
+    system items with ``400 {'detail': 'System messages are not allowed'}``,
+    so they travel via top-level ``instructions`` instead.
+    """
+    systems: list[str] = []
+    rest: list[dict] = []
+    for m in messages:
+        if m.get("role") in ("system", "developer") and m.get("content"):
+            systems.append(_text_of(m.get("content")).strip())
+        else:
+            rest.append(m)
+    systems = [s for s in systems if s]
+    return ("\n\n".join(systems) if systems else None, rest)
+
+
+def _is_oauth_provider(provider: str | None) -> bool:
+    """Whether ``provider`` currently resolves to a ChatGPT OAuth session."""
+    if not provider or provider != "openai":
+        return False
+    from janito.runtime_config import oauth_session_active
+
+    # Display-only helper: never refreshes or raises by contract.
+    return bool(oauth_session_active(provider))
+
+
+def _reasoning_kwargs(model: str, reasoning_effort: str | None, provider: str | None) -> dict | None:
+    """Build the Responses ``reasoning`` param, or ``None`` to omit it."""
+    found = get_provider(provider) if provider else None
+    thinking_summary = (
+        bool(found.model_config(model).get("thinking_summary", False)) if found is not None else False
+    )
+    if not reasoning_effort and not thinking_summary:
+        return None
+    reasoning: dict = {}
+    if reasoning_effort:
+        reasoning["effort"] = reasoning_effort
+    if thinking_summary:
+        reasoning["summary"] = "auto"
+    return reasoning
+
+
+def _attach_native_tools(call_kwargs: dict, model: str, tools_schemas: list[dict] | None, config) -> None:
+    """Attach function + native tools to ``call_kwargs`` (in place)."""
+    builtin_tools = list(config.effective_tools_for("Responses") or [])
+    if builtin_tools or _model_supports_image_generation(model):
+        converted_tools = _convert_tools(tools_schemas or [])
+        if _model_supports_image_generation(model):
+            converted_tools.append({"type": "image_generation"})
+        converted_tools.extend(builtin_tools)
+        call_kwargs["tools"] = converted_tools
+        call_kwargs["tool_choice"] = "auto"
+    elif tools_schemas:
+        call_kwargs["tools"] = _convert_tools(tools_schemas)
+        call_kwargs["tool_choice"] = "auto"
+
+
 def build_call_kwargs(
     model: str,
     messages: list[dict],
@@ -229,38 +288,33 @@ def build_call_kwargs(
     Mirrors ``janito.llm_clients.openai.responses_state._build_call_kwargs``
     (same max_output_tokens / reasoning / preserve_thinking / thinking
     handling) but always drives the stateless input-items model, so no
-    ``previous_response_id`` / ``instructions`` are ever needed: the full
-    conversation is converted from ``messages`` on every round.
+    ``previous_response_id`` is ever needed: the full conversation is
+    converted from ``messages`` on every round. System messages are folded
+    into ``input`` except for ChatGPT OAuth sessions, which reject them and
+    use top-level ``instructions`` instead.
     """
+    provider = getattr(config, "effective_provider", None)
+    is_oauth = _is_oauth_provider(provider)
+    instructions: str | None = None
+    if is_oauth:
+        instructions, messages = _split_system_messages(messages)
     call_kwargs: dict = {
         "model": model,
         "input": _messages_to_input_items(messages),
-        "temperature": 1.0,
         "stream": True,
     }
+    if not is_oauth:
+        call_kwargs["temperature"] = 1.0
+    else:
+        call_kwargs["store"] = False
+        if instructions:
+            call_kwargs["instructions"] = instructions
 
     if max_output_tokens is not None:
         call_kwargs["max_output_tokens"] = max_output_tokens
 
-    # Reasoning effort/summary: sent whenever a reasoning level resolves
-    # (None means the API's own default applies).  Models declaring
-    # thinking_summary (e.g. Meta's Muse Spark) also request
-    # reasoning.summary="auto" so the private chain of thought is returned
-    # as summary text (response.reasoning_summary_text deltas, surfaced via
-    # on_reasoning).  Responses-only: Chat Completions has no summary.
-    provider = getattr(config, "effective_provider", None)
-    found_reasoning = get_provider(provider) if provider else None
-    thinking_summary = (
-        bool(found_reasoning.model_config(model).get("thinking_summary", False))
-        if found_reasoning is not None
-        else False
-    )
-    if reasoning_effort or thinking_summary:
-        reasoning: dict = {}
-        if reasoning_effort:
-            reasoning["effort"] = reasoning_effort
-        if thinking_summary:
-            reasoning["summary"] = "auto"
+    reasoning = _reasoning_kwargs(model, reasoning_effort, provider)
+    if reasoning is not None:
         call_kwargs["reasoning"] = reasoning
 
     if preserve_thinking is not None:
@@ -273,31 +327,7 @@ def build_call_kwargs(
     # their OpenAI-compatibility API.
     apply_thinking_to_extra_body(call_kwargs, config.effective_thinking, provider=provider)
 
-    # Native model capabilities enabled through the Responses ``tools`` array:
-    #
-    # - ``image_generation``: mainline models (gpt-5+) can generate images
-    #   through the Responses API's built-in ``image_generation`` tool;
-    # - the effective model's built-in tools (e.g. Alibaba/Qwen's
-    #   code_interpreter / web_search / web_extractor) are native
-    #   capabilities whose ``{"type": ...}`` shape is already the Responses
-    #   format.
-    #
-    # Both are model capabilities, not permissioned function tools, so they
-    # are enabled whenever the model supports/declares them -- even with
-    # ``no_tools`` / an empty function-tools list.  They are appended after
-    # any converted function tools; neither goes through the function-schema
-    # conversion.
-    builtin_tools = list(config.effective_tools_for("Responses") or [])
-    if builtin_tools or _model_supports_image_generation(model):
-        converted_tools = _convert_tools(tools_schemas or [])
-        if _model_supports_image_generation(model):
-            converted_tools.append({"type": "image_generation"})
-        converted_tools.extend(builtin_tools)
-        call_kwargs["tools"] = converted_tools
-        call_kwargs["tool_choice"] = "auto"
-    elif tools_schemas:
-        call_kwargs["tools"] = _convert_tools(tools_schemas)
-        call_kwargs["tool_choice"] = "auto"
+    _attach_native_tools(call_kwargs, model, tools_schemas, config)
     return call_kwargs
 
 

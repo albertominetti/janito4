@@ -151,7 +151,9 @@ precedence over `~/.janito/auth.json`.
 
 > **Note:** When using CLI arguments, `--set` and `--set-api-key` must be run as **separate commands**. They cannot be combined in a single invocation.
 
-> **Note:** If an API key is already stored for a provider, `--set-api-key` warns you and asks for confirmation before overwriting it. Pass `-f`/`--force` to overwrite without prompting (useful for scripts and non-interactive use).
+> **Note:** If OAuth details are stored for OpenAI, `--set-api-key` is refused without prompting or changing credentials. Run `janito --logout --provider openai` first to switch to API-key authentication. Stored OpenAI OAuth details do not prevent setting keys for other providers.
+
+> **Note:** If an API key is already stored for a provider, `--set-api-key` warns you and asks for confirmation before overwriting it.
 
 > **Note:** `--set-api-key` targets the provider given with `--provider`. When `--provider` is omitted, the configured default provider is used (the `provider` value from `config.json`); if none is configured, janito exits with an error.
 
