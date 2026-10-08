@@ -370,12 +370,20 @@ class RunBashCode(BaseTool):
 
     @classmethod
     def should_load(cls) -> bool:
+        if os.name == "nt":
+            cls._load_skip_reason = "Bash execution is not supported on Windows"
+            return False
         shell = cls._find_shell()
         if shell is None:
             cls._load_skip_reason = "No Bash or POSIX shell found on this system"
             return False
         return True
 ```
+
+`RunBashCode` is not loaded on Windows, even if Git Bash or WSL is installed.
+Use `RunPowerShellCode` for shell execution on Windows. On non-Windows systems,
+Bash detection and the POSIX `sh` fallback remain available. This loading gate
+applies to both CLI and web sessions.
 
 Rules:
 

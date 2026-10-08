@@ -15,6 +15,8 @@ Changes since `v4.45.0` (2026-09-30).
 
 ### Fixed
 
+- Do not load `RunBashCode` on Windows, even when Git Bash or WSL is installed; use `RunPowerShellCode` instead.
+
 - Run GitHub CLI commands directly with an argument list so Windows executable paths containing spaces are handled correctly.
 
 - Make `--login` skip the browser flow when ChatGPT OAuth credentials are already stored.

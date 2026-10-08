@@ -156,12 +156,15 @@ class RunBashCode(BaseTool):
     @classmethod
     def should_load(cls) -> bool:
         """
-        Only load this tool if a Bash (or POSIX sh) executable is available.
+        Only load on non-Windows systems with a Bash (or POSIX sh) executable.
 
         Returns:
-            bool: True if Bash (bash) or a POSIX shell (sh) is found,
+            bool: True on non-Windows systems if Bash or sh is found,
                 False otherwise
         """
+        if os.name == "nt":
+            cls._load_skip_reason = "Bash execution is not supported on Windows; use RunPowerShellCode instead"
+            return False
         if cls._find_shell() is None:
             cls._load_skip_reason = (
                 "no Bash executable found (looked for 'bash' and 'sh' on " "PATH and in well-known install locations)"

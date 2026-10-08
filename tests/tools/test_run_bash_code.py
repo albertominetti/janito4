@@ -18,6 +18,49 @@ from janito.tools.system._streaming import lines_to_text, preview_lines
 from janito.tools.system.run_bash_code import RunBashCode
 
 # ---------------------------------------------------------------------------
+# RunBashCode loading gate
+# ---------------------------------------------------------------------------
+
+
+def test_windows_excludes_bash_from_discovery(monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from janito.tooling import discovery
+    from janito.tools.system import run_bash_code
+
+    # Replace only this module's OS reference, not the process-wide os.name.
+    monkeypatch.setattr(run_bash_code, "os", SimpleNamespace(name="nt"))
+    find_shell = Mock(return_value=r"C:\Windows\System32\bash.exe")
+    monkeypatch.setattr(RunBashCode, "_find_shell", find_shell)
+    monkeypatch.setattr(RunBashCode, "_load_skip_reason", "", raising=False)
+    monkeypatch.setattr(discovery, "_skipped_tools", {})
+
+    assert RunBashCode.should_load() is False
+    assert discovery.discover_module_tools(run_bash_code) == {}
+    assert discovery.get_skipped_tools()[RunBashCode.__name__]
+    find_shell.assert_not_called()
+
+
+@pytest.mark.parametrize("shell_path", ["/bin/bash", "/bin/sh", None])
+def test_non_windows_loading_depends_on_shell(monkeypatch, shell_path):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from janito.tools.system import run_bash_code
+
+    monkeypatch.setattr(run_bash_code, "os", SimpleNamespace(name="posix"))
+    find_shell = Mock(return_value=shell_path)
+    monkeypatch.setattr(RunBashCode, "_find_shell", find_shell)
+    monkeypatch.setattr(RunBashCode, "_load_skip_reason", "", raising=False)
+
+    assert RunBashCode.should_load() is (shell_path is not None)
+    find_shell.assert_called_once_with()
+    if shell_path is None:
+        assert RunBashCode._load_skip_reason
+
+
+# ---------------------------------------------------------------------------
 # RunBashCode integration tests
 # ---------------------------------------------------------------------------
 
