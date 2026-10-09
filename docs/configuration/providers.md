@@ -135,7 +135,11 @@ explicitly selects OpenAI.
 
 Notes:
 
-- `--login` is a no-op when ChatGPT OAuth credentials are already stored.
+- `--login` is a no-op when the stored ChatGPT session is still fresh
+  (it refreshes transparently when expired, and re-authenticates when the
+  refresh token is no longer valid). Use `janito --login -f` to force
+  re-authentication even when already signed in (e.g. after a server-side
+  `token_expired` rejection).
 - `--logout` reports when no ChatGPT credentials are stored and exits successfully.
   It removes ChatGPT credentials only; the OpenAI API key is left untouched.
 - `--login` fails when an API key is already set and no OAuth credentials exist; remove it first

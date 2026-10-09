@@ -386,6 +386,7 @@ class ResponsesClient(Client):
                 base_url=base_url,
                 model=model,
                 error_kind="auth",
+                auth_type=getattr(self.api_config, "auth_type", "api_key"),
             )
             raise
         except RequestCancelled as e:

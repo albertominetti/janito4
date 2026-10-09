@@ -279,7 +279,8 @@ Note: --set and --set-api-key must be used in separate commands.
         "-f",
         "--force",
         action="store_true",
-        help="Overwrite an existing API key without prompting (used with --set-api-key)",
+        help="Overwrite an existing API key without prompting (used with --set-api-key); "
+        "with --login, forces re-authentication even when already signed in",
     )
 
     parser.add_argument(
@@ -301,7 +302,8 @@ Note: --set and --set-api-key must be used in separate commands.
     parser.add_argument(
         "--login",
         action="store_true",
-        help="Sign in with ChatGPT for the active provider (--provider or the configured provider; only 'openai')",
+        help="Sign in with ChatGPT for the active provider (--provider or the configured provider; only 'openai'; "
+        "use -f/--force to re-authenticate when already signed in)",
     )
 
     parser.add_argument(

@@ -15,7 +15,13 @@ def _resolve_login_provider(args) -> str | None:
 def handle_login(args) -> int:
     """Handle ``janito --login``."""
     from ...auth_config import get_chatgpt_oauth
-    from ...openai_oauth import ChatGPTAuthError, do_login, mask_record
+    from ...openai_oauth import (
+        ChatGPTAuthError,
+        do_login,
+        ensure_fresh_record,
+        is_expired,
+        mask_record,
+    )
 
     provider = _resolve_login_provider(args) or "openai"
     if provider != "openai":
@@ -24,11 +30,25 @@ def handle_login(args) -> int:
             file=sys.stderr,
         )
         return 1
+    force = bool(getattr(args, "force", False))
     existing = get_chatgpt_oauth()
-    if existing:
-        email = existing.get("email") or "(unknown account)"
-        print(f"Already signed in to ChatGPT for provider 'openai' ({email}); skipping login.")
-        return 0
+    if existing and not force:
+        if not is_expired(existing):
+            email = existing.get("email") or "(unknown account)"
+            print(f"Already signed in to ChatGPT for provider 'openai' ({email}); skipping login.")
+            print("Use janito --login -f --provider openai to re-authenticate.")
+            return 0
+        try:
+            fresh = ensure_fresh_record(existing)
+        except ChatGPTAuthError:
+            fresh = None
+        if fresh is not None:
+            email = fresh.get("email") or existing.get("email") or "(unknown account)"
+            print(f"ChatGPT session refreshed for provider 'openai' ({email}).")
+            return 0
+        # Refresh failed (revoked/expired refresh token): fall through to
+        # interactive re-login instead of stranding the user on "already
+        # signed in" while every API call 401s.
     try:
         record = do_login(provider=provider)
     except ChatGPTAuthError as e:

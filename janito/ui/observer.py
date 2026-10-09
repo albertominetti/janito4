@@ -102,6 +102,7 @@ class RichTurnObserver(NullObserver):
         model: str | None = None,
         response_id: str | None = None,
         error_kind: str | None = None,
+        auth_type: str | None = None,
     ) -> None:
         """Render an error explainer for a classified failure.
 
@@ -116,7 +117,7 @@ class RichTurnObserver(NullObserver):
         if error_kind == "not_found":
             _handle_not_found_error(e, base_url, model, self.console, response_id=response_id)
         elif error_kind == "auth":
-            _handle_auth_error(e, provider, api_key, base_url, model, self.console)
+            _handle_auth_error(e, provider, api_key, base_url, model, self.console, auth_type=auth_type)
         # else: unknown failure -- nothing to explain; the caller re-raises.
 
     def on_limits(self, http_error_msg: str, retry_interval: float) -> None:

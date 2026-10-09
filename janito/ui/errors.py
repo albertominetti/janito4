@@ -55,6 +55,7 @@ def _handle_auth_error(
     base_url: str | None,
     model: str,
     console: Console,
+    auth_type: str | None = None,
 ) -> None:
     """Explain an authentication failure (invalid API key) and re-raise.
 
@@ -72,9 +73,27 @@ def _handle_auth_error(
     status_code = getattr(e, "status_code", None)
     code = getattr(e, "code", None)
     if status_code != 401 and code != 401 and not (isinstance(code, str) and "InvalidApiKey" in code):
-        return
+        # OpenAI SDK 401s sometimes surface only in the message body
+        # (e.g. ChatGPT-plan "token_expired" with status hidden).
+        if "token_expired" not in str(e).lower() and "authentication" not in str(e).lower():
+            return
 
     provider = cli_provider or get_active_provider()
+    if auth_type == "chatgpt_oauth":
+        api_url = base_url if base_url else "https://api.openai.com"
+        console.print("[bold red]Error: ChatGPT authentication failed (token expired or revoked).[/bold red]")
+        console.print(f"  Provider: [bold]{provider}[/bold]")
+        console.print(f"  Model:    [bold]{model}[/bold]")
+        console.print(f"  API URL:  [bold]{api_url}[/bold]")
+        console.print(
+            "[dim]Your ChatGPT session is no longer valid. "
+            "Re-authenticate with: janito --logout --provider openai, then "
+            "janito --login --provider openai "
+            "(or janito --login -f --provider openai).[/dim]"
+        )
+        logger.error(f"ChatGPT authentication failed - provider: {provider}, model: {model}, api_url: {api_url}: {e}")
+        return
+
     masked_key = get_masked_api_key(api_key)
     api_url = base_url if base_url else "https://api.openai.com"
     console.print("[bold red]Error: Authentication failed (invalid API key).[/bold red]")

@@ -101,6 +101,7 @@ class TurnObserver(Protocol):
         model: str | None = None,
         response_id: str | None = None,
         error_kind: str | None = None,
+        auth_type: str | None = None,
     ) -> None:
         """Render an error explainer (auth failure, unknown model, ...).
 
@@ -208,6 +209,7 @@ class NullObserver:
         model: str | None = None,
         response_id: str | None = None,
         error_kind: str | None = None,
+        auth_type: str | None = None,
     ) -> None:
         pass
 

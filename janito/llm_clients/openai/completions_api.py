@@ -199,6 +199,7 @@ class CompletionsClient(Client):
                 base_url=base_url,
                 model=model,
                 error_kind="auth",
+                auth_type=getattr(self.api_config, "auth_type", "api_key"),
             )
             raise
         return full_content, reasoning_content, tool_calls, usage_info, raw_attrs
