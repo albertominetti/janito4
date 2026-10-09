@@ -131,12 +131,9 @@ def build_api_config(
             is combined with an unsupported API type.
     """
     # Lazy imports avoid a cycle: completions_api imports APIConfig.
-    from janito.config_loaders import (
-        load_effort,
-        load_max_input_tokens,
-        load_max_output_tokens,
-    )
+    from janito.config_loaders import load_max_input_tokens
     from janito.general_config import get_active_provider
+    from janito.model_settings import resolve_model_settings
     from janito.providers.registry import get_provider
     from janito.runtime_config import resolve_runtime_full
 
@@ -153,15 +150,14 @@ def build_api_config(
         )
 
     found = get_provider(provider)
-    found_max_output = found.model_config(model).get("max_output_tokens") if found is not None else None
     found_max_input = found.model_config(model).get("max_input_tokens") if found is not None else None
-    found_reasoning = found.model_config(model).get("default_reasoning_effort") if found is not None else None
     found_thinking = found.model_config(model).get("thinking", False) if found is not None else False
-    found_preserve_thinking = found.model_config(model).get("preserve_thinking") if found is not None else None
 
-    max_output_tokens = load_max_output_tokens(provider, model) or found_max_output or 100_000
+    max_output_tokens, found_preserve_thinking, resolved_effort = resolve_model_settings(
+        provider, model, effort_override=reasoning_effort
+    )
     max_input_tokens = load_max_input_tokens(provider, model) or found_max_input
-    reasoning_effort = reasoning_effort or load_effort(provider, model) or found_reasoning
+    reasoning_effort = resolved_effort
     thinking = thinking or found_thinking
 
     return APIConfig(

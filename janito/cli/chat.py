@@ -72,6 +72,7 @@ def _make_turn_func(
     from ..llm_clients import create_client
 
     client = create_client(api_config, ui_config)
+    observer = ui_config.observer if ui_config is not None else None
 
     def run_turn(
         prompt,
@@ -103,6 +104,10 @@ def _make_turn_func(
             instructions=instructions,
             tools=tools,
         )
+
+    # Explicit observer dependency (issue #31): command handlers (e.g. /pop)
+    # read ``turn_func.observer`` instead of inspecting the closure.
+    run_turn.observer = observer  # type: ignore[attr-defined]
 
     return run_turn
 

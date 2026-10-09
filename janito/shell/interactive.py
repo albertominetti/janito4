@@ -75,6 +75,11 @@ class InteractiveShell(_SessionMixin):
         self.thinking = thinking
         self.api_type = api_type
         self.effort = effort
+        # Explicit session observer for rendering (e.g. /pop replays the
+        # last assistant message through it). Set from the turn function's
+        # explicit ``observer`` attribute in run(); never discovered via
+        # closure inspection (issue #31).
+        self.observer = None
         # Set by /model for the current session: the explicit model override
         # that the turn_factory (re)built by /provider and /model consults
         # so
@@ -692,6 +697,17 @@ class InteractiveShell(_SessionMixin):
 
         save_conversation_state(self.conversation_snapshot())
 
+    def _attach_turn_func(self, turn_func: Callable) -> None:
+        """Store the turn callable and its explicit observer dependency.
+
+        The turn factory exposes the session observer as
+        ``turn_func.observer`` (issue #31); no closure inspection.
+        """
+        self.turn_func = turn_func
+        observer = getattr(turn_func, "observer", None)
+        if observer is not None:
+            self.observer = observer
+
     def run(
         self,
         turn_func: Callable,
@@ -709,7 +725,7 @@ class InteractiveShell(_SessionMixin):
             thinking: If True, enable thinking mode
         """
         # Store references so command handlers (e.g. /ask) can use them
-        self.turn_func = turn_func
+        self._attach_turn_func(turn_func)
         self.verbose = verbose
         self.no_tools = no_tools
         self.thinking = thinking

@@ -6,21 +6,22 @@ from .registry import register_command
 
 
 def _resolve_observer(shell):
-    """Best-effort lookup of the session's turn observer."""
+    """Return the session's explicit turn observer, or ``None``.
+
+    Explicit dependency only (issue #31): ``shell.observer`` (set from the
+    turn function's explicit ``observer`` attribute in
+    ``InteractiveShell.run``) or ``shell.turn_func.observer``. No closure
+    inspection and no concrete-observer fallback -- callers print plain
+    text when no observer is configured.
+    """
     observer = getattr(shell, "observer", None)
-    if observer is not None:
+    if observer is not None and hasattr(observer, "on_message"):
         return observer
     turn_func = getattr(shell, "turn_func", None)
-    for cell in getattr(turn_func, "__closure__", None) or ():
-        candidate = cell.cell_contents
-        observer = getattr(candidate, "observer", None)
-        if observer is not None:
-            return observer
-        if hasattr(candidate, "on_message"):
-            return candidate
-    from janito.ui.observer import RichTurnObserver
-
-    return RichTurnObserver()
+    observer = getattr(turn_func, "observer", None)
+    if observer is not None and hasattr(observer, "on_message"):
+        return observer
+    return None
 
 
 def _last_assistant_message(shell) -> str | None:
@@ -51,7 +52,11 @@ class PopCmdHandler(CmdHandler):
             last = _last_assistant_message(shell)
             if last:
                 print("Last Message:")
-                _resolve_observer(shell).on_message(last)
+                observer = _resolve_observer(shell)
+                if observer is not None:
+                    observer.on_message(last)
+                else:
+                    print(last)
             return True
         return False
 

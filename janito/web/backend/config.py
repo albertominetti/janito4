@@ -78,6 +78,22 @@ class WebServerConfig:
         return self.session_provider or self.provider or get_active_provider()
 
     @property
+    def is_oauth(self) -> bool:
+        """Whether the effective provider uses a ChatGPT OAuth session.
+
+        Resolved here (web -> root is allowed) so the shared
+        ``llm_adapters`` layer never reads the config/auth stores itself
+        (issue #31); the adapters consume this flag as passed-in metadata.
+        """
+        try:
+            from janito.runtime_config import oauth_session_active
+
+            provider = self.effective_provider
+            return bool(provider and oauth_session_active(provider))
+        except Exception:  # noqa: BLE001 - display/helper must never raise
+            return False
+
+    @property
     def effective_thinking(self):
         """The thinking mode in effect for the next prompt.
 

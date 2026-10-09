@@ -107,8 +107,42 @@ The intended layering:
 - The one remaining cycle — **root <-> providers** (config-store /
   variant-name resolution vs. the provider registry) — is accepted and kept
   contained with lazy imports on both sides; each site carries a
-  comment to that effect.  `tests/test_import_graph.py` statically enforces
+  comment to that effect.  `tests/core/test_import_graph.py` statically enforces
   this matrix, so any new cycle or wrong-direction edge fails the suite.
+
+## Design principles
+
+Every review (issue #31) must report on each principle below — OK or a
+violation with `file:line`. Blocking: a domain with two owners, duplicated
+logic, or business logic in templates / UI code.
+
+- **Separation of concerns** — domain policy lives in exactly one owner.
+  End-of-turn accounting (token selection, cost, persistence) is owned by
+  `janito/accounting_policy.py`; model-setting precedence
+  (`config override → built-in default → 100_000 fallback`) is owned by
+  `janito/model_settings.py`. The CLI (`ui/observer.py`) and the web loop
+  (`web/backend/agent/loop.py`) invoke those services; observers render
+  results but never own billing or config policy.
+- **Programming by intention** — dependencies are explicit, never
+  discovered by inspecting implementation details. The turn factory exposes
+  `turn_func.observer`, `InteractiveShell` stores it as `shell.observer`
+  (`_attach_turn_func`), and `shell/cmds/pop.py:_resolve_observer` reads
+  only those attributes — no `turn_func.__closure__` walk.
+- **Encapsulation** — callers respect implementation boundaries. The shared
+  `llm_adapters/responses.py` adapter receives authentication metadata
+  (`is_oauth` argument or `config.is_oauth` from
+  `WebServerConfig.is_oauth`) and never reads the config/auth stores
+  itself; changing how the turn callable is built cannot silently alter
+  rendering.
+- **High cohesion** — presentation stays presentation. `RichTurnObserver`
+  (and `SilentTurnObserver`) render the usage summary; billing-record
+  construction and persistence live in the accounting service above.
+- **Low coupling** — cross-domain edges follow the matrix in
+  [Domains & boundaries](#domains--boundaries) and nothing more.
+  `llm_adapters` targets only `providers`; `web` never imports from
+  `llm_clients`; `shell` never imports from `ui`. The guard asserts a
+  non-empty scan plus a synthetic forbidden-edge test, so a vacuous pass
+  fails.
 
 ## Entry point & CLI dispatch
 

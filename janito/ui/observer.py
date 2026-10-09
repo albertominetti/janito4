@@ -14,10 +14,9 @@ from typing import Any
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from janito.accounting_policy import record_turn_accounting
 from janito.llm_adapters.observer import NullObserver
 from janito.llm_adapters.usage import TurnInfo
-from janito.providers.costing import get_provider_cost_value
-from janito.tooling.accounting import record_turn
 
 from ..llm_clients.api_config import APIConfig
 from .display import (
@@ -196,40 +195,12 @@ class SilentTurnObserver(NullObserver):
 def _record_accounting(token_stats: TurnInfo | None, api_config: APIConfig) -> None:
     """Append one overall-use accounting row for a completed turn (best effort).
 
-    Uses the turn-wide cumulative counters (:class:`~janito.llm_adapters.usage.TurnInfo`
-    accumulates every round of the turn, tool-call rounds included) so the
-    accounting log reflects the billed usage; falls back to the final round's
-    counters when the turn-wide ones were not reported.  The provider / model
-    (and the numeric dollar cost estimate from
-    :func:`janito.providers.costing.get_provider_cost_value`) come from the
-    turn's resolved :class:`~janito.llm_clients.api_config.APIConfig`.
-    Never raises -- accounting must not be able to break the agent loop
-    (issue #72).
-
-    Invoked from the observer's ``on_turn_complete`` (the CLI's
-    :class:`RichTurnObserver`), so every CLI entry point (interactive shell,
-    ``/ask``, ``/compact``, one-shot ``janito <prompt>``) feeds the
-    ``accounting.db`` log, mirroring the web loop's own accounting.
+    Thin CLI entry point over the shared
+    :func:`janito.accounting_policy.record_turn_accounting` service, which
+    owns token selection, cost calculation, and persistence. Invoked from
+    the observer's ``on_turn_complete`` so every CLI entry point feeds the
+    ``accounting.db`` log; the observer itself only renders results.
     """
     if token_stats is None:
         return
-    input_tokens = token_stats.turn_input if token_stats.turn_input is not None else token_stats.last_input
-    cached_tokens = token_stats.turn_cached if token_stats.turn_cached is not None else token_stats.last_cached
-    output_tokens = token_stats.turn_output if token_stats.turn_output is not None else token_stats.last_output
-    cost = None
-    if api_config.provider and api_config.model:
-        cost = get_provider_cost_value(
-            api_config.provider,
-            api_config.model,
-            input_tokens or 0,
-            output_tokens or 0,
-            cached_tokens or 0,
-        )
-    record_turn(
-        api_config.provider,
-        api_config.model,
-        input_tokens,
-        cached_tokens,
-        output_tokens,
-        cost=cost,
-    )
+    record_turn_accounting(token_stats, api_config.provider, api_config.model)

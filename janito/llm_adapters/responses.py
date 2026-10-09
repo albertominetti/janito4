@@ -233,14 +233,17 @@ def _split_system_messages(messages: list[dict]) -> tuple[str | None, list[dict]
     return ("\n\n".join(systems) if systems else None, rest)
 
 
-def _is_oauth_provider(provider: str | None) -> bool:
-    """Whether ``provider`` currently resolves to a ChatGPT OAuth session."""
-    if not provider or provider != "openai":
-        return False
-    from janito.runtime_config import oauth_session_active
+def _is_oauth_session(config, is_oauth: bool | None) -> bool:
+    """Whether this turn uses a ChatGPT OAuth session.
 
-    # Display-only helper: never refreshes or raises by contract.
-    return bool(oauth_session_active(provider))
+    Authentication metadata is passed in -- never resolved here -- so the
+    shared adapter layer stays below the root config layer (issue #31):
+    an explicit ``is_oauth`` argument wins, otherwise the caller's config
+    object carries ``is_oauth`` (e.g. ``WebServerConfig.is_oauth``).
+    """
+    if is_oauth is not None:
+        return bool(is_oauth)
+    return bool(getattr(config, "is_oauth", False))
 
 
 def _reasoning_kwargs(model: str, reasoning_effort: str | None, provider: str | None) -> dict | None:
@@ -282,6 +285,7 @@ def build_call_kwargs(
     max_output_tokens: int | None,
     preserve_thinking,
     reasoning_effort: str | None,
+    is_oauth: bool | None = None,
 ) -> dict:
     """Build the ``client.responses.create`` kwargs for one turn.
 
@@ -291,10 +295,13 @@ def build_call_kwargs(
     ``previous_response_id`` is ever needed: the full conversation is
     converted from ``messages`` on every round. System messages are folded
     into ``input`` except for ChatGPT OAuth sessions, which reject them and
-    use top-level ``instructions`` instead.
+    use top-level ``instructions`` instead. The OAuth mode comes from the
+    caller (``is_oauth`` argument or ``config.is_oauth``) -- never from a
+    config-store read here.
     """
     provider = getattr(config, "effective_provider", None)
-    is_oauth = _is_oauth_provider(provider)
+    oauth = _is_oauth_session(config, is_oauth)
+    is_oauth = oauth
     instructions: str | None = None
     if is_oauth:
         instructions, messages = _split_system_messages(messages)

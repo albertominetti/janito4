@@ -25,8 +25,8 @@ from collections.abc import AsyncGenerator, Callable
 from dataclasses import dataclass
 from typing import Any
 
-from janito.config_loaders import load_effort, load_max_output_tokens
 from janito.general_config import get_active_provider, resolve_api_type
+from janito.model_settings import FALLBACK_MAX_OUTPUT_TOKENS, resolve_model_settings
 from janito.llm_adapters.anthropic import accumulator as anthropic_accumulator
 from janito.llm_adapters.anthropic import build_call_kwargs as build_anthropic_kwargs
 from janito.llm_adapters.completions import accumulator as completions_accumulator
@@ -36,11 +36,9 @@ from janito.llm_adapters.gemini import accumulator as gemini_accumulator
 from janito.llm_adapters.gemini import build_call_kwargs as build_gemini_kwargs
 from janito.llm_adapters.responses import accumulator as responses_accumulator
 from janito.llm_adapters.responses import build_call_kwargs as build_responses_kwargs
+from janito.accounting_policy import record_turn_accounting
 from janito.llm_adapters.usage import TurnInfo
-from janito.providers.costing import get_provider_cost_value
-from janito.providers.registry import get_provider
 from janito.runtime_config import resolve_runtime_config
-from janito.tooling.accounting import record_turn
 from janito.tooling.executor import extract_tool_names
 
 from ..config import WebServerConfig
@@ -65,31 +63,17 @@ logger = logging.getLogger(__name__)
 def _resolve_turn_config(config, effective_provider, model):
     """Resolve max tokens / preserve_thinking / reasoning level for the turn.
 
-    The max-tokens, preserve_thinking and effort defaults are
-    resolved for the **effective model** (the one returned by
-    ``resolve_runtime_config``): a model-scoped config override wins, then
-    the model's built-in default from the provider config (falling back to
-    the default model's entry for models without a built-in entry).
-    ``preserve_thinking`` comes from the provider config's model entry only
-    (e.g. ``True`` for Alibaba/Qwen, whose API appends previous
-    ``reasoning_content`` to the next input); models that declare none send
-    no flag and the API's own default applies.
+    Thin web entry point over the shared
+    :func:`janito.model_settings.resolve_model_settings` service: a
+    model-scoped config override wins, then the model's built-in default,
+    then ``FALLBACK_MAX_OUTPUT_TOKENS``. Web-specific session overrides
+    stay with the caller; ``config`` is kept for signature compatibility.
     """
-    found = get_provider(effective_provider)
-    max_output_tokens = load_max_output_tokens(effective_provider, model)
-    if max_output_tokens is None:
-        # Fall back to the provider's built-in default (from the provider
-        # config).
-        max_output_tokens = found.model_config(model).get("max_output_tokens") if found is not None else None
-    preserve_thinking = found.model_config(model).get("preserve_thinking") if found is not None else None
-
-    # Reasoning level (reasoning_effort): model-scoped config value first,
-    # then the model's built-in default (e.g. "low" for qwen3.8-max).
-    reasoning_effort = load_effort(effective_provider, model)
-    if reasoning_effort is None:
-        reasoning_effort = found.model_config(model).get("default_reasoning_effort") if found is not None else None
-
-    return max_output_tokens, preserve_thinking, reasoning_effort
+    return resolve_model_settings(
+        effective_provider,
+        model,
+        fallback_max_output_tokens=FALLBACK_MAX_OUTPUT_TOKENS,
+    )
 
 
 @dataclass(frozen=True)
@@ -243,33 +227,11 @@ def _attach_turn_stats(usage_event, turn_stats: TurnInfo | None) -> None:
 def _record_web_turn(provider: str | None, model: str | None, turn_stats: TurnInfo | None) -> None:
     """Append one overall-use accounting row for a completed web turn.
 
-    Mirrors the CLI's end-of-turn accounting (issue #72): the turn-wide
-    cumulative counters (tool-call rounds included) are stored with the
-    numeric dollar cost estimate.  Best effort -- never raises, so accounting
-    cannot break the streaming loop.
+    Thin web entry point over the shared
+    :func:`janito.accounting_policy.record_turn_accounting` service
+    (issue #72). Best effort -- never raises.
     """
-    if turn_stats is None:
-        return
-    input_tokens = turn_stats.turn_input if turn_stats.turn_input is not None else turn_stats.last_input
-    cached_tokens = turn_stats.turn_cached if turn_stats.turn_cached is not None else turn_stats.last_cached
-    output_tokens = turn_stats.turn_output if turn_stats.turn_output is not None else turn_stats.last_output
-    cost = None
-    if provider and model:
-        cost = get_provider_cost_value(
-            provider,
-            model,
-            input_tokens or 0,
-            output_tokens or 0,
-            cached_tokens or 0,
-        )
-    record_turn(
-        provider,
-        model,
-        input_tokens,
-        cached_tokens,
-        output_tokens,
-        cost=cost,
-    )
+    record_turn_accounting(turn_stats, provider, model)
 
 
 async def stream_prompt(

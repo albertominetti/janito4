@@ -35,7 +35,7 @@ import ast
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 PACKAGE_DIR = REPO_ROOT / "janito"
 
 DOMAINS = {
@@ -138,8 +138,16 @@ def _collect_edges() -> list[tuple[str, str, str]]:
     return violations
 
 
+def _scanned_files() -> list[Path]:
+    """Return the Python files the boundary scan covers."""
+    return sorted(PACKAGE_DIR.rglob("*.py"))
+
+
 def test_import_graph_respects_domain_boundaries():
     """No cross-domain import may fall outside the allowed matrix."""
+    assert PACKAGE_DIR.is_dir(), f"Package dir missing: {PACKAGE_DIR}"
+    files = _scanned_files()
+    assert files, f"Boundary scan covered zero files under {PACKAGE_DIR}"
     violations = _collect_edges()
     assert not violations, (
         "Cross-domain imports violate the allowed dependency matrix (issue #90):\n"
@@ -147,6 +155,21 @@ def test_import_graph_respects_domain_boundaries():
         + "\nUpdate the code (or, only after a deliberate boundary decision, "
         "the ALLOWED_EDGES matrix in this test and dev-docs/ARCHITECTURE.md)."
     )
+
+
+def test_scan_is_nonempty():
+    """The guard must actually scan the package (regression for tests/ root bug)."""
+    assert PACKAGE_DIR.is_dir(), f"Package dir missing: {PACKAGE_DIR}"
+    files = _scanned_files()
+    assert len(files) > 50, f"Expected to scan the real package, got {len(files)} files"
+
+
+def test_synthetic_forbidden_import_is_flagged():
+    """A synthetic disallowed edge must be reported as a violation."""
+    # llm_adapters may only target providers; root must be flagged.
+    assert "root" not in ALLOWED_EDGES["llm_adapters"]
+    assert _domain_of("janito.llm_adapters.responses") == "llm_adapters"
+    assert _domain_of("janito.runtime_config") == "root"
 
 
 def test_allowed_matrix_domains_are_known():
