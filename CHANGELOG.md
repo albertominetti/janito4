@@ -11,6 +11,10 @@ Changes since `v4.46.0` (2026-10-08).
 
 ### Added
 
+- Claude Haiku 5.5 support for Anthropic (issue #185), with a 1M-token
+  context window, 128K output limit, and tiered cost estimates above
+  100,000 prompt tokens. Sonnet remains the default model.
+
 - Configurable role in the built-in system prompt (issue #29), defaulting to
   `software developer`. Use `-R/--role` for a session override or
   `--set role=...` to persist it; CLI and new web sessions share resolution.

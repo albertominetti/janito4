@@ -883,9 +883,34 @@ janito --set-api-key="your-anthropic-api-key" --provider anthropic
 | `claude-fable-5-1` | Newest frontier model (1M context) |
 | `claude-opus-5-5` | Highest capability model (1M context) |
 | `claude-sonnet-5-5` | Latest flagship model (1M context; default) |
+| `claude-haiku-5-5` | Fastest model for high-volume, latency-sensitive tasks (1M context; 128K output) |
 
 Model selection is restricted to the built-in models above.
 `janito --list-models` shows the accepted names.
+
+### Claude Haiku 5.5
+
+Select Haiku for classification, extraction, routing, and other latency-sensitive tasks:
+
+```bash
+janito --provider anthropic --model claude-haiku-5-5 "Summarize this text"
+```
+
+[Official model specifications](https://platform.claude.com/docs/en/models/haiku-5-5/overview)
+list a 1,000,000-token context window and a 128,000-token output limit.
+Haiku supports adaptive thinking with default effort `medium`.
+Sonnet remains Janito's default Anthropic model.
+
+Estimated prices in USD per million tokens:
+
+| Prompt size (including cached input) | Input | Cached input (read) | Output |
+|--------------------------------------|-------|---------------------|--------|
+| Up to 100,000 tokens | $0.10 | $0.01 | $0.50 |
+| Over 100,000 tokens | $0.50 | $0.05 | $2.50 |
+
+The higher tier applies to the entire request, not just tokens over the
+threshold. Estimates cover input, cache reads, and output; cache writes
+and Batch API discounts are not included.
 
 ### Native Anthropic SDK (optional)
 

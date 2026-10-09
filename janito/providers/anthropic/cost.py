@@ -7,8 +7,9 @@ pricing page (https://platform.claude.com/docs/en/about-claude/pricing)
 and apply as of the verification date.  Anthropic adjusts figures
 frequently, so cross-check that page before relying on them.
 
-Claude 4.6 and later models include the full 1M-token context window at
-standard pricing, so there is no high-context surcharge.
+Claude Haiku 5.5 charges a higher rate for the whole request when the
+prompt exceeds 100,000 tokens (including cached tokens). Other configured
+models use the same rates throughout their 1M-token context window.
 
 Prompt caching
 --------------
@@ -24,6 +25,7 @@ claude-sonnet-5-5.  There is no peak-hour surcharge.
 #: billed at the cache-hit rate ($0.20/1M for claude-sonnet-5-5, 10% of the
 #: base input rate).
 _MODEL_RATES: dict[str, tuple[float, float, float]] = {
+    "claude-haiku-5-5": (0.10, 0.01, 0.50),
     "claude-fable-5-1": (10.00, 1.00, 50.00),
     "claude-opus-5-5": (4.00, 0.40, 20.00),
     "claude-sonnet-5-5": (2.00, 0.20, 10.00),
@@ -55,6 +57,8 @@ def get_cost(
     rates = _MODEL_RATES.get(model)
     if rates is None:
         return "N/A"
+    if model == "claude-haiku-5-5" and input > 100_000:
+        rates = (0.50, 0.05, 2.50)
     input_miss, input_hit, output_rate = rates
     cost = ((input - cached) * input_miss + cached * input_hit + output * output_rate) / 1_000_000
     return f"{cost:.6f}$"

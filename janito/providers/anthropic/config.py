@@ -44,6 +44,13 @@ PROVIDER_CONFIG: dict = {
             "max_input_tokens": 1000000,
             "max_output_tokens": 128000,
         },
+        "claude-haiku-5-5": {
+            "supported_api_types": ["Completions", "Anthropic"],
+            "default_api_type": "Completions",
+            # https://platform.claude.com/docs/en/models/haiku-5-5/overview
+            "max_input_tokens": 1000000,
+            "max_output_tokens": 128000,
+        },
         "claude-fable-5-1": {
             "supported_api_types": [
                 "Completions",
