@@ -127,6 +127,7 @@ class WebServerConfig:
         return found.tools(self.model, api_type=api_type) if found is not None else None
 
     # --- System prompt ---
+    role: str | None = None  # -R / --role
     system_prompt: str | None = None  # -S "custom prompt"
     no_system_prompt: bool = False  # -Z
     no_tools: bool = False  # implied by -Z
@@ -149,6 +150,7 @@ class WebServerConfig:
             provider=getattr(args, "provider", None),
             model=getattr(args, "model", None) or _resolve_model_from_config(getattr(args, "provider", None)),
             api_type=getattr(args, "api_type", None),
+            role=getattr(args, "role", None),
             thinking=getattr(args, "thinking", False),
             verbose=getattr(args, "verbose", False),
             no_history=getattr(args, "no_history", False),
@@ -171,6 +173,7 @@ class WebServerConfig:
                 "read",
                 "write",
                 "exec",
+                "role",
                 "system_prompt",
                 "no_system_prompt",
                 "no_tools",
@@ -228,6 +231,7 @@ class WebServerConfig:
         return SessionSetup(
             system_prompt=self.system_prompt,
             no_system_prompt=self.no_system_prompt,
+            role=self.role,
         ).effective_system_prompt()
 
     def apply_toolsets(self) -> None:

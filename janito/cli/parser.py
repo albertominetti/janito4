@@ -236,6 +236,13 @@ Note: --set and --set-api-key must be used in separate commands.
     )
 
     parser.add_argument(
+        "-R",
+        "--role",
+        help="Role for the built-in system prompt (default: software developer). "
+        "Overrides --set role=... for this session; choose a role suited to the task.",
+    )
+
+    parser.add_argument(
         "-r",
         "--read",
         action="store_true",

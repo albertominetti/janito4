@@ -708,3 +708,13 @@ def validate_system_prompt_file_path(file_value: str) -> str:
     if not os.path.isfile(path):
         raise ValueError(f"Cannot read config key 'system-prompt-file': " f"{file_value!r}: file does not exist")
     return path
+
+
+DEFAULT_ROLE = "software developer"
+
+
+def load_role(cli_role: str | None = None) -> str:
+    """Resolve the global role: CLI override, configuration, then default."""
+    from .config_store import get_config_value
+
+    return cli_role if cli_role is not None else get_config_value("role") or DEFAULT_ROLE

@@ -269,6 +269,7 @@ def _resolve_system_prompt(args) -> tuple[str | None, bool]:
     setup = SessionSetup(
         system_prompt=args.system_prompt,
         no_system_prompt=args.no_system_prompt,
+        role=getattr(args, "role", None),
     )
     return setup.effective_system_prompt(), setup.no_tools
 
@@ -482,6 +483,7 @@ def run_interactive_chat(args):
     # (provider, model and API type are re-resolved, see _make_turn_factory).
     # The session's verbose flag is baked into the config at build time
     # (issue #70); the shell keeps its own copy for /status display.
+    shell.role = getattr(args, "role", None)
     shell.turn_factory = _make_turn_factory(
         cli_api_type,
         cli_model,
@@ -525,6 +527,7 @@ def _build_single_prompt_context(args):
     setup = SessionSetup(
         system_prompt=args.system_prompt,
         no_system_prompt=args.no_system_prompt,
+        role=getattr(args, "role", None),
     )
     return setup.messages_context(), setup.tools_arg()
 

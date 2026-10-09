@@ -44,17 +44,21 @@ from .system_labels import LABEL_BUILTIN
 BUILTIN_SYSTEM_PROMPT_RESOURCE = "system-prompt.txt"
 
 
-def get_builtin_system_prompt() -> str:
-    """Return the built-in base prompt read from the packaged resource.
+def get_builtin_system_prompt(role: str | None = None) -> str:
+    """Return the packaged base prompt with the resolved role interpolated.
 
     The text lives in ``janito/system-prompt.txt`` (installed as package
     data) and is read from the resource location on every call, so the
     default prompt always reflects the shipped file.  The content is
-    stripped of leading/trailing whitespace, keeping the ``start`` section
+    interpolated only for the ``{role}`` placeholder (CLI, config, default),
+    then stripped of leading/trailing whitespace, keeping the ``start`` section
     without its own newlines: :meth:`SysPromptManager.render` appends one
     newline at the end of every section for visual separation.
     """
-    return files("janito").joinpath(BUILTIN_SYSTEM_PROMPT_RESOURCE).read_text(encoding="utf-8").strip()
+    from .config_loaders import load_role
+
+    template = files("janito").joinpath(BUILTIN_SYSTEM_PROMPT_RESOURCE).read_text(encoding="utf-8").strip()
+    return template.replace("{role}", load_role(role))
 
 
 # Section names used when building the default prompt.
@@ -261,8 +265,11 @@ def apply_start_section(
     return copy
 
 
-def default_system_prompt_manager() -> SysPromptManager:
+def default_system_prompt_manager(role: str | None = None) -> SysPromptManager:
     """Return the default prompt manager with the configured ``start`` applied.
+
+    ``role`` overrides configuration only for the built-in prompt; custom
+    prompt text is never interpolated.
 
     The ``skills`` / ``agents.md`` sections are synced as usual; the
     ``start`` section comes from config (``system-prompt-file`` /
@@ -286,6 +293,6 @@ def default_system_prompt_manager() -> SysPromptManager:
 
     start, label = load_system_prompt_start()
     if start is None:
-        start = get_builtin_system_prompt()
+        start = get_builtin_system_prompt(role)
         label = LABEL_BUILTIN
     return apply_start_section(sync_default_sections(), start, start_label=label)

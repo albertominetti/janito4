@@ -45,7 +45,7 @@ class PromptCmdHandler(CmdHandler):
         # SessionSetup.effective_system_prompt() path, so a config-provided
         # start is classified as "default" here (keeping the section table)
         # instead of drifting into the plain custom-prompt view.
-        manager = default_system_prompt_manager()
+        manager = default_system_prompt_manager(getattr(shell, "role", None))
         if effective_prompt == manager.render():
             # Default prompt: show each section as a rich table row with its
             # name, line count and content.  Only advertise skills in the

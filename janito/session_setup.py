@@ -23,6 +23,7 @@ class SessionSetup:
     Args:
         system_prompt: A custom system prompt (``-S``). When set, it wins over
             every other mode; tools stay enabled.
+        role: Session role override (``-R/--role``) for the built-in prompt.
         no_system_prompt: ``-Z``: send no system prompt at all (implies
             ``no_tools``).
     """
@@ -32,7 +33,9 @@ class SessionSetup:
         *,
         system_prompt: str | None = None,
         no_system_prompt: bool = False,
+        role: str | None = None,
     ) -> None:
+        self.role = role
         self.system_prompt = system_prompt
         self.no_system_prompt = no_system_prompt
 
@@ -68,7 +71,7 @@ class SessionSetup:
             return None
         from janito.system_prompt import default_system_prompt_manager
 
-        return default_system_prompt_manager().render()
+        return default_system_prompt_manager(self.role).render()
 
     def messages_context(self) -> list[dict]:
         """Build the seeded ``messages`` history for a single-prompt run.

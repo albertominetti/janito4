@@ -175,7 +175,11 @@ def test_builtin_prompt_is_packaged_resource():
 
     resource = files("janito").joinpath("system-prompt.txt")
     assert resource.is_file()
-    assert get_builtin_system_prompt() == resource.read_text(encoding="utf-8").strip()
+    from janito.config_loaders import DEFAULT_ROLE
+
+    assert get_builtin_system_prompt(DEFAULT_ROLE) == resource.read_text(encoding="utf-8").strip().replace(
+        "{role}", DEFAULT_ROLE
+    )
 
 
 def test_prompt_without_agents_md(monkeypatch, tmp_path):

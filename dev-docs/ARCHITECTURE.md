@@ -624,7 +624,11 @@ The system prompt (`janito/system_prompt.py`) composes the base prompt, the
 skills advertisement section, the current project's `AGENTS.md` content, and
 any loaded plugins' `SYSTEM_PROMPT` sections. The base prompt is the packaged
 resource `janito/system-prompt.txt` (installed as package data), read lazily
-from the resource location when the default prompt is resolved. The
+from the resource location when the default prompt is resolved. Its
+`{role}` placeholder is resolved via `config_loaders.load_role`: the
+`-R/--role` session override, the global `role` config key, then the default
+`software developer`. `SessionSetup` passes the override for CLI and web
+sessions; custom prompt text is not interpolated. The
 composition is built from ordered sections (`start`, `skills`, `agents.md`,
 `plugins:<name>`) stored in a shared `SysPromptManager`; each section is a
 `Section` dataclass carrying its name, text and an optional display `label`

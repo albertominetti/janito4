@@ -312,7 +312,7 @@ def handle_show_system_prompt(args) -> int:
     # actually uses.  Only advertise skills in the title when a "skills"
     # section is actually present (skills enabled and at least one skill
     # advertised).
-    manager = default_system_prompt_manager()
+    manager = default_system_prompt_manager(getattr(args, "role", None))
     sections = list(manager.get_all_sections())
     has_skills = any(section.name == SECTION_SKILLS for section in sections)
     title = "System prompt (default (with skills))" if has_skills else "System prompt (default)"

@@ -1,3 +1,5 @@
+Your role is {role}.
+
 Explore the current directory for potential content related to the question
 Before making any change, check for a plan in the current conversation. If none exists, act as planner,
 create a concise plan, and get the user’s approval or feedback before implementing.

@@ -68,6 +68,7 @@ See [Provider Variants](../configuration/variants.md) for the full guide.
 
 | Option | Description |
 |--------|-------------|
+| `-R`, `--role <role>` | Set the role for the built-in system prompt for this run (default: `software developer`); overrides configured `role`. Lowercase `-r` remains READ privilege |
 | `-Z`, `--no-system-prompt` | Do not set a system prompt and do not pass any tools |
 | `-S`, `--system-prompt <prompt>` | Override the system prompt (tools stay enabled) |
 | `--no-tools` | Do not load tools (disables built-in, skill, plugin, MCP and server-side tools) |
@@ -75,6 +76,11 @@ See [Provider Variants](../configuration/variants.md) for the full guide.
 | `--show-system-prompt` | Display the resolved system prompt and exit |
 | `-t`, `--thinking` | Enable thinking mode (sends `extra_body={'enable_thinking': True}`). DeepSeek, Alibaba/Qwen and MiniMax-M3 have thinking enabled by default. Gemini-flavored providers (google) do not accept this flag; thinking depth is controlled through `--effort` instead. |
 | `-e`, `--effort <level>` | Set the reasoning depth for the API call (sends `reasoning_effort=<level>`). Overrides the provider's configured value and built-in default. Values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. |
+
+Choose a task-appropriate role to guide perspective, terminology and priorities.
+Roles do not grant permissions or guarantee expertise. See
+[Configuration — Role](../configuration/index.md#role-role) for precedence,
+examples and custom-prompt behavior.
 
 ## API Type
 
@@ -230,6 +236,8 @@ janito --uninstall-plugin codesearch
 ### System Prompt & Privileges
 
 ```bash
+janito -R "systems engineer" "Review this deployment design"
+janito --set role="technical writer"  # persist a role for future sessions
 janito -Z "Simple prompt without tools"
 janito -S "You are a concise coding assistant" "Explain recursion"
 janito -r -w "Refactor this file"
@@ -274,6 +282,7 @@ Values stored in `~/.janito/config.json` via `--set`. Keys are scoped:
 | `api-type` | model-scoped | API type (`Responses`, `Completions`, `Anthropic`, `DashScope`, `Gemini`) | model built-in default |
 | `stateless-mode` | model-scoped | Whether the Responses API keeps conversation state server-side (bool) | model built-in default |
 | `used-files` | flat | Whether the end-of-turn `Used files` report is printed by the CLI/shell (bool, opt-in) | `false` |
+| `role` | flat | Role in the built-in system prompt; overridden by `-R/--role` | `software developer` |
 | `system-prompt` | flat | Literal text used as the system prompt's `start` section | built-in base prompt |
 | `system-prompt-file` | flat | Path to a file whose content becomes the `start` section (`~` is expanded, relative paths resolve against the cwd); wins over `system-prompt` when both are set. Validated when set and at startup: janito fails (exit 1) with an actionable error when the file does not exist | unset |
 

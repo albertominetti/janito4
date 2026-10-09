@@ -38,6 +38,19 @@ janito --set provider=custom --set endpoint="http://localhost:1234/v1" --set mod
 janito --set-api-key="not-needed" --provider custom
 ```
 
+### Choose a Role for Your Task
+
+Janito defaults to the `software developer` role. Setting a role suited to
+your task helps guide the model’s perspective, terminology and priorities:
+
+```bash
+janito -R "technical writer" "Improve this user guide"
+janito --set role="systems engineer"  # default for future sessions
+```
+
+A role does not grant permissions or guarantee expertise. See
+[Role configuration](../configuration/index.md#role-role) for details.
+
 ## 2. Run Your First Prompt
 
 ### Single Prompt

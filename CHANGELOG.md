@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Changes since `v4.46.0` (2026-10-08).
 
+### Added
+
+- Configurable role in the built-in system prompt (issue #29), defaulting to
+  `software developer`. Use `-R/--role` for a session override or
+  `--set role=...` to persist it; CLI and new web sessions share resolution.
+  Lowercase `-r/--read` is unchanged. Documentation explains why choosing a
+  task-appropriate role matters and its limits. Custom prompts remain unchanged.
+
 ### Fixed
 
 - ChatGPT-plan login no longer strands users on "Already signed in" with an

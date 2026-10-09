@@ -47,8 +47,49 @@ keys per provider **and** model (see the note below and
 | `stateless-mode` | per provider/model | Whether the Responses API keeps conversation state server-side | model built-in default |
 | `disabled-tools` | per provider/model | External tools hidden from the model (e.g. `WebSearch` when native server-side search exists; comma-separated or JSON list) | derived default (`WebSearch` for native-search models) |
 | `used-files` | flat | Whether the end-of-turn `Used files` report is printed by the CLI/shell | `false` |
+| `role` | flat | Role in the built-in system prompt; overridden by `-R/--role` | `software developer` |
 | `system-prompt` | flat | Literal text used as the system prompt's `start` section | built-in base prompt |
 | `system-prompt-file` | flat | Path to a file whose content becomes the `start` section (`~` is expanded, relative paths resolve against the working directory); wins over `system-prompt` when both are set | unset |
+
+### Role (`role`)
+
+**Choose a role that matches your task.** The role gives the model a useful
+perspective and helps guide its terminology, priorities and level of detail.
+For example, use `systems engineer` for infrastructure design or `technical
+writer` for documentation. The default, `software developer`, suits coding
+work; a task-appropriate role can make other responses more relevant.
+
+```bash
+janito -R "systems engineer" "Review this deployment design"
+janito --role "technical writer" "Improve this user guide"
+janito --set role="systems engineer"  # persist for future sessions
+janito --get role                      # inspect the stored setting
+janito --unset role                    # remove the configured override
+janito -R "systems engineer" --show-system-prompt
+```
+
+Resolution order is **`-R/--role` > configured `role` > `software developer`**.
+The CLI flag affects only the current run and does not change configuration.
+The setting is global, not provider- or model-scoped, and follows normal
+project-local configuration precedence. Removing a local override may expose
+a global value; with no configured role, the built-in default applies.
+Uppercase `-R` sets the role; lowercase `-r` still grants READ privilege.
+
+The built-in prompt includes the resolved role before model requests:
+
+```text
+Your role is systems engineer.
+```
+
+This applies to single-prompt runs, interactive chat, and new web sessions
+(e.g. `janito --web -R "systems engineer"`). It does not rewrite existing
+conversations. Custom prompts supplied with `-S`, `system-prompt` or
+`system-prompt-file` are used unchanged: their placeholders are not
+interpolated and no role line is added. `-Z` disables the system prompt entirely.
+
+A role is guidance, **not a permission setting or a guarantee of expertise**.
+It does not grant tools or read/write/execute privileges. Continue to provide
+clear task instructions and verify important results.
 
 ### System prompt (`system-prompt` / `system-prompt-file`)
 
